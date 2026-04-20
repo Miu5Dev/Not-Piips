@@ -2,28 +2,41 @@ using UnityEngine;
 
 public class AimTargetController : MonoBehaviour
 {
-    [Header("Sensitivity")]
-    public float mouseSensitivity = 0.15f;
-    public float gamepadSensitivity = 120f;
+    [Header("Aim")]
+    [Tooltip("Camera used to cast the aim ray. Defaults to Camera.main if not assigned.")]
+    public Camera aimCamera;
 
-    [Header("Vertical Clamp")]
-    public float minPitch = -40f;
-    public float maxPitch = 70f;
+    [Tooltip("How far the aim point is placed when the ray hits nothing.")]
+    public float maxAimDistance = 100f;
 
-    private float pitch = 0f;
+    [Tooltip("Layers the aim ray can hit. Exclude the player's own colliders.")]
+    public LayerMask aimMask = ~0;
 
-    void OnEnable()  => EventBus.Subscribe<OnLookInputEvent>(OnLook);
-    void OnDisable() => EventBus.Unsubscribe<OnLookInputEvent>(OnLook);
+    /// <summary>
+    /// World-space point the crosshair is currently aimed at.
+    /// Updated every LateUpdate — read this from ShootController when spawning.
+    /// </summary>
+    public Vector3 AimPoint { get; private set; }
 
-    private void OnLook(OnLookInputEvent e)
+    private void Awake()
     {
-        float sens = e.Source == LookInputSource.Gamepad
-            ? gamepadSensitivity * Time.deltaTime
-            : mouseSensitivity;
+        if (aimCamera == null)
+            aimCamera = Camera.main;
+    }
 
-        pitch -= e.Delta.y * sens;
-        pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
+    private void LateUpdate()
+    {
+        if (aimCamera == null) return;
 
-        transform.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+        Ray ray = aimCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+
+        AimPoint = Physics.Raycast(ray, out RaycastHit hit, maxAimDistance, aimMask)
+            ? hit.point
+            : ray.GetPoint(maxAimDistance);
+
+        // Rotate spawnpoint toward the aim point
+        Vector3 direction = (AimPoint - transform.position).normalized;
+        if (direction != Vector3.zero)
+            transform.rotation = Quaternion.LookRotation(direction);
     }
 }
