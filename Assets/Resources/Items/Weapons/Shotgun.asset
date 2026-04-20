@@ -12,11 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
   m_Name: Shotgun
   m_EditorClassIdentifier: 
+  weight: 5
+  size: {x: 0, y: 0}
+  image: {fileID: 0}
   weaponType: 0
-  shotType: 0
+  shotType: 1
   ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
   damage: 5
-  weight: 5
+  currentBullets: 0
   fireRate: 3
   pellets: 1
   spreadAngle: 6
