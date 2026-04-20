@@ -125,6 +125,7 @@ public class InputSystem : MonoBehaviour
 
     private void OnOpenInventoryInput(InputAction.CallbackContext context)
     {
+        Debug.Log($"[InputSystem] OpenInventory fired — pressed: {context.performed}");
         EventBus.Raise(new OnOpenInventoryEvent()
         {
             pressed = context.performed

@@ -31,7 +31,7 @@ public class InventoryGridUI : MonoBehaviour
 
     void BuildGrid()
     {
-        _grid = GetComponent<GridLayoutGroup>();
+        _grid = GetComponent<GridLayoutGroup>() ?? gameObject.AddComponent<GridLayoutGroup>();
         _grid.constraint      = GridLayoutGroup.Constraint.FixedColumnCount;
         _grid.constraintCount = columns;
         _grid.spacing         = new Vector2(cellSpacing, cellSpacing);
