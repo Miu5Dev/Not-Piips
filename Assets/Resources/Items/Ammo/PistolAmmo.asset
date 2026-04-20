@@ -9,17 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
-  m_Name: New Weapon
+  m_Script: {fileID: 11500000, guid: f9d586ee020d86a4d8095c9f3f6e1fd1, type: 3}
+  m_Name: PistolAmmo
   m_EditorClassIdentifier: 
-  weaponType: 0
-  shotType: 0
-  ammo: {fileID: 0}
-  damage: 0
   weight: 0
-  fireRate: 8
-  pellets: 1
-  spreadAngle: 0
-  weaponPrefab: {fileID: 0}
   size: {x: 0, y: 0}
   image: {fileID: 0}
+  speed: 110
+  gravityForce: -1
+  ammoPrefab: {fileID: 5487143856129994456, guid: 3c89394c6b42b124da20b10799b0ce4a, type: 3}
+  decalPrefab: {fileID: 6844756505131219995, guid: 57cbb2bd8a8ea5d459644f3feb44b95a, type: 3}

@@ -9,9 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9d586ee020d86a4d8095c9f3f6e1fd1, type: 3}
-  m_Name: PistolAmmo
-  m_EditorClassIdentifier: 
-  speed: 60
-  gravityForce: -1
-  ammoPrefab: {fileID: 5487143856129994456, guid: 3c89394c6b42b124da20b10799b0ce4a, type: 3}
+  m_Script: {fileID: 0}
+  m_Name: EventBusListenerConfig
+  m_EditorClassIdentifier: Assembly-CSharp::EventBusListenerConfig
+  eventsFolder: Scripts/Events

@@ -7,25 +7,21 @@ public class ShootController : MonoBehaviour
     [SerializeField] private WeaponSO currentWeapon;
     [SerializeField] private Transform spawnpoint;
     [SerializeField] private float hipFireDuration = 0.2f;
-    [SerializeField] private float shotSpawnDelay = 0.06f;
+    [SerializeField] private float shotSpawnDelay  = 0.06f;
+
+    [Tooltip("Reference to AimTargetController to read the exact aim point at shoot time.")]
+    [SerializeField] private AimTargetController aimTarget;
 
     private float hipFireTimer;
-    private bool isHipFiring;
+    private bool  isHipFiring;
     private float lastShotTime;
 
     private bool isFireHeld;
     private bool canSemiAutoShootAgain = true;
 
-    private void OnEnable()
-    {
-        EventBus.Subscribe<OnSwapInputEvent>(OnFireInput);
-    }
-
-    private void OnDisable()
-    {
-        EventBus.Unsubscribe<OnSwapInputEvent>(OnFireInput);
-    }
-
+    // =========================================================
+    // UPDATE
+    // =========================================================
     private void Update()
     {
         HandleHipFireTimer();
@@ -34,22 +30,17 @@ public class ShootController : MonoBehaviour
             return;
 
         if (currentWeapon.shotType == ShotType.Automatic && isFireHeld)
-        {
             TryShoot();
-        }
     }
 
-    private void OnFireInput(OnSwapInputEvent e)
+    // =========================================================
+    // PUBLIC API — called from EventBusListener in the Inspector
+    // =========================================================
+    public void OnFirePressed()
     {
-        isFireHeld = e.pressed;
+        isFireHeld = true;
 
-        if (!e.pressed)
-        {
-            canSemiAutoShootAgain = true;
-            return;
-        }
-
-        switch (currentWeapon.shotType)
+        switch (currentWeapon != null ? currentWeapon.shotType : ShotType.SemiAutomatic)
         {
             case ShotType.SemiAutomatic:
             case ShotType.Manual:
@@ -61,20 +52,26 @@ public class ShootController : MonoBehaviour
                 break;
 
             case ShotType.Automatic:
-                // no dispara aquí continuamente;
-                // Update se encarga mientras isFireHeld sea true
-                TryShoot(); // opcional para respuesta inmediata al primer click
+                TryShoot();
                 break;
         }
     }
 
+    public void OnFireReleased()
+    {
+        isFireHeld = false;
+        canSemiAutoShootAgain = true;
+    }
+
+    // =========================================================
+    // INTERNAL
+    // =========================================================
     private void TryShoot()
     {
-        if (Time.time < lastShotTime + (1f / currentWeapon.fireRate))
-            return;
+        if (currentWeapon == null || currentWeapon.ammo == null) return;
+        if (Time.time < lastShotTime + (1f / currentWeapon.fireRate)) return;
 
         lastShotTime = Time.time;
-
         StartHipFire();
         StartCoroutine(FireAfterDelay());
     }
@@ -83,19 +80,27 @@ public class ShootController : MonoBehaviour
     {
         yield return new WaitForSeconds(shotSpawnDelay);
 
+        // Read AimPoint HERE — at actual spawn time, with spawnpoint already in its new position.
+        // This guarantees direction = (currentAimPoint - currentSpawnPos), always in sync.
+        Vector3 aimPoint = aimTarget != null
+            ? aimTarget.AimPoint
+            : spawnpoint.position + spawnpoint.forward * 100f;
+
+        Vector3    baseDir = (aimPoint - spawnpoint.position).normalized;
+        Quaternion baseRot = baseDir != Vector3.zero
+            ? Quaternion.LookRotation(baseDir)
+            : spawnpoint.rotation;
+
         int pellets = Mathf.Max(1, currentWeapon.pellets);
 
         if (pellets == 1)
         {
-            SpawnProjectile(spawnpoint.rotation);
+            SpawnProjectile(baseRot);
         }
         else
         {
             for (int i = 0; i < pellets; i++)
-            {
-                Quaternion spreadRot = GetSpreadRotation(spawnpoint.rotation, currentWeapon.spreadAngle);
-                SpawnProjectile(spreadRot);
-            }
+                SpawnProjectile(GetSpreadRotation(baseRot, currentWeapon.spreadAngle));
         }
     }
 
@@ -110,13 +115,14 @@ public class ShootController : MonoBehaviour
         shot.Initialize(
             currentWeapon.damage,
             currentWeapon.ammo.speed,
-            currentWeapon.ammo.gravityForce
+            currentWeapon.ammo.gravityForce,
+            currentWeapon.ammo.decalPrefab
         );
     }
 
     private Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
     {
-        float yaw = Random.Range(-spreadAngle, spreadAngle);
+        float yaw   = Random.Range(-spreadAngle, spreadAngle);
         float pitch = Random.Range(-spreadAngle, spreadAngle);
         return baseRotation * Quaternion.Euler(pitch, yaw, 0f);
     }
@@ -128,10 +134,9 @@ public class ShootController : MonoBehaviour
         if (!isHipFiring)
         {
             isHipFiring = true;
-
             EventBus.Raise(new OnHipFireStateChangedEvent
             {
-                Shooter = transform,
+                Shooter     = transform,
                 IsHipFiring = true
             });
         }
@@ -146,10 +151,9 @@ public class ShootController : MonoBehaviour
         if (hipFireTimer <= 0f)
         {
             isHipFiring = false;
-
             EventBus.Raise(new OnHipFireStateChangedEvent
             {
-                Shooter = transform,
+                Shooter     = transform,
                 IsHipFiring = false
             });
         }
