@@ -8,8 +8,10 @@ public class Shot : MonoBehaviour
     public float GravityForce { get; private set; }
 
     [Header("Decal")]
-    [Tooltip("Check if your decal prefab uses a URP DecalProjector. Uncheck for a simple quad.")]
     public bool useDecalProjector = true;
+
+    [Header("Trail Randomization")]
+    [SerializeField] private int trailPresetCount = 8;
 
     private GameObject    decalPrefab;
     private Rigidbody     rb;
@@ -17,9 +19,17 @@ public class Shot : MonoBehaviour
     private bool          initialized;
     private Vector3       moveDirection;
     private Vector3       spawnPoint;
+    private float         despawnSqr;
 
-    public float DistanceFromSpawn;
     public float despawnDistance = 100f;
+
+    private AnimationCurve[] _trailPresets;
+    private float[]          _trailTimes;
+    private int              _presetIndex;
+
+    // =========================================================
+    // LIFECYCLE
+    // =========================================================
 
     private void Awake()
     {
@@ -28,7 +38,32 @@ public class Shot : MonoBehaviour
 
         rb.useGravity             = false;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        despawnSqr                = despawnDistance * despawnDistance;
+
+        PrewarmTrailPresets();
     }
+
+    private void OnEnable()
+    {
+        // Always re-cache — TrailFader.Detach replaces the trail child
+        trail = GetComponentInChildren<TrailRenderer>(includeInactive: true);
+        if (trail == null) return;
+
+        trail.gameObject.SetActive(true);
+        trail.Clear();
+        trail.emitting = true;
+    }
+
+    private void OnDisable()
+    {
+        initialized       = false;
+        rb.linearVelocity = Vector3.zero;
+        rb.isKinematic    = false;
+    }
+
+    // =========================================================
+    // INITIALIZE
+    // =========================================================
 
     public void Initialize(int damage, float speed, float gravityForce, GameObject decal = null)
     {
@@ -44,8 +79,12 @@ public class Shot : MonoBehaviour
         spawnPoint        = transform.position;
         initialized       = true;
 
-        RandomizeTrail();
+        ApplyTrailPreset();
     }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
 
     private void FixedUpdate()
     {
@@ -57,8 +96,8 @@ public class Shot : MonoBehaviour
         v.y += GravityForce * Time.fixedDeltaTime;
         rb.linearVelocity = v;
 
-        DistanceFromSpawn = Vector3.Distance(spawnPoint, transform.position);
-        if (DistanceFromSpawn >= despawnDistance) Die();
+        if ((transform.position - spawnPoint).sqrMagnitude >= despawnSqr)
+            Die();
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -68,40 +107,60 @@ public class Shot : MonoBehaviour
     }
 
     // =========================================================
-    // DIE
+    // DIE — detach trail BEFORE releasing to pool so SetActive(false)
+    //        on the bullet doesn't kill the trail ghost mid-copy
     // =========================================================
+
     private void Die()
     {
         if (trail != null)
-            TrailFader.Detach(trail);
+        {
+            TrailFader.Detach(trail, transform);
+            trail = null; // fresh trail attached by Detach, re-cached in OnEnable
+        }
 
-        Destroy(gameObject);
+        BulletPool.GetOrCreate().Release(this);
     }
 
     // =========================================================
-    // TRAIL RANDOMIZATION
+    // TRAIL
     // =========================================================
-    private void RandomizeTrail()
+
+    private void PrewarmTrailPresets()
     {
-        if (trail == null) return;
+        _trailPresets = new AnimationCurve[trailPresetCount];
+        _trailTimes   = new float[trailPresetCount];
 
-        float widthScale = Random.Range(0.6f, 1.4f);
-        float tip        = Random.Range(0.005f, 0.02f);
-        float mid        = Random.Range(0.03f,  0.09f) * widthScale;
-        float tail       = Random.Range(0.01f,  0.05f) * widthScale;
+        for (int i = 0; i < trailPresetCount; i++)
+        {
+            float widthScale = Random.Range(0.6f, 1.4f);
+            float tip        = Random.Range(0.005f, 0.02f);
+            float mid        = Random.Range(0.03f,  0.09f) * widthScale;
+            float tail       = Random.Range(0.01f,  0.05f) * widthScale;
 
-        trail.widthCurve = new AnimationCurve(
-            new Keyframe(0f,                        tip,  0f, 0f),
-            new Keyframe(Random.Range(0.3f, 0.6f), mid,  0f, 0f),
-            new Keyframe(1f,                        tail, 0f, 0f)
-        );
+            _trailPresets[i] = new AnimationCurve(
+                new Keyframe(0f,                        tip,  0f, 0f),
+                new Keyframe(Random.Range(0.3f, 0.6f), mid,  0f, 0f),
+                new Keyframe(1f,                        tail, 0f, 0f)
+            );
+            _trailTimes[i] = Random.Range(0.1f, 0.35f);
+        }
+    }
+
+    private void ApplyTrailPreset()
+    {
+        if (trail == null || _trailPresets == null) return;
+
+        _presetIndex          = (_presetIndex + 1) % _trailPresets.Length;
+        trail.widthCurve      = _trailPresets[_presetIndex];
         trail.widthMultiplier = 1f;
-        trail.time            = Random.Range(0.1f, 0.35f);
+        trail.time            = _trailTimes[_presetIndex];
     }
 
     // =========================================================
     // DECAL
     // =========================================================
+
     private void SpawnDecal(ContactPoint contact, Transform parent)
     {
         if (decalPrefab == null) return;

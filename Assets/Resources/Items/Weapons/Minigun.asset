@@ -22,5 +22,5 @@ MonoBehaviour:
   currentBullets: 0
   fireRate: 12
   pellets: 1
-  spreadAngle: 3
+  spreadAngle: 1.5
   weaponPrefab: {fileID: 0}
