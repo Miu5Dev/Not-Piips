@@ -1,17 +1,17 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 [CreateAssetMenu(
     fileName = "New Weapon",
     menuName = "Objects/Weapon",
     order = 0)]
-public class WeaponSO : ScriptableObject
+public class WeaponSO : itemSO
 {
     [Header("Stats")]
     public WeaponType weaponType;
     public ShotType shotType;
     public AmmoSO ammo;
     public int damage;
-    public float weight;
 
     [Header("Fire")]
     public float fireRate = 8f;
@@ -20,4 +20,5 @@ public class WeaponSO : ScriptableObject
 
     [Header("Prefab")]
     public GameObject weaponPrefab;
+    
 }
