@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 [CreateAssetMenu(
     fileName = "New Item",
@@ -8,12 +7,12 @@ using UnityEngine.UI;
 public class itemSO : ScriptableObject
 {
     [Header("Type")]
-    ItemType itemType;
-    
+    public ItemType itemType;
+
     [Header("Stats")]
     public float weight;
-    
-    [Header("InvSystem")] 
-    public Vector2 size;
-    public Image image;
+
+    [Header("InvSystem")]
+    public Vector2Int size;
+    public Sprite icon;
 }

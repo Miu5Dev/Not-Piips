@@ -40,4 +40,10 @@ public class OnJumpInputEvent : InputEventBase
 
 public class OnSwapInputEvent : InputEventBase
 {
+    
 }
+
+public class OnOpenInventoryEvent : InputEventBase
+{
+}
+

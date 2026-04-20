@@ -27,6 +27,8 @@ public class InputSystem : MonoBehaviour
         inputs.Player.Crouch.canceled += OnCrouchInput;
         inputs.Player.Swap.performed += OnSwapInput;
         inputs.Player.Swap.canceled += OnSwapInput;
+        inputs.Player.OpenInventory.performed += OnOpenInventoryInput;
+        inputs.Player.OpenInventory.canceled += OnOpenInventoryInput;
 
         Debug.Log("[InputSystem] Initialized");
     }
@@ -116,6 +118,14 @@ public class InputSystem : MonoBehaviour
     private void OnSwapInput(InputAction.CallbackContext context)
     {
         EventBus.Raise(new OnSwapInputEvent()
+        {
+            pressed = context.performed
+        });
+    }
+
+    private void OnOpenInventoryInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnOpenInventoryEvent()
         {
             pressed = context.performed
         });
