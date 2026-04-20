@@ -252,7 +252,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a8895e9f21e6ed4da3e79afa28dd6dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentWeapon: {fileID: 11400000, guid: a2820eb7e7e1fb4478c67de856e55330, type: 2}
+  currentWeapon: {fileID: 11400000, guid: b198a0b1dd3a4a4439d4bab6becc88d2, type: 2}
   spawnpoint: {fileID: 1122337281}
   hipFireDuration: 0.5
   shotSpawnDelay: 0.06
@@ -884,6 +884,7 @@ GameObject:
   - component: {fileID: 1564805059}
   - component: {fileID: 1564805062}
   - component: {fileID: 1564805061}
+  - component: {fileID: 1564805063}
   m_Layer: 0
   m_Name: CinemachineBrain
   m_TagString: MainCamera
@@ -1033,6 +1034,19 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &1564805063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1564805058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6591f50b9aa7670448a068eaccd6a00d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxDecals: 60
 --- !u!1 &1565581238
 GameObject:
   m_ObjectHideFlags: 0

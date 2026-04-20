@@ -93,14 +93,13 @@ public class ShootController : MonoBehaviour
 
         int pellets = Mathf.Max(1, currentWeapon.pellets);
 
-        if (pellets == 1)
+        for (int i = 0; i < pellets; i++)
         {
-            SpawnProjectile(baseRot);
-        }
-        else
-        {
-            for (int i = 0; i < pellets; i++)
-                SpawnProjectile(GetSpreadRotation(baseRot, currentWeapon.spreadAngle));
+            Quaternion shotRot = currentWeapon.spreadAngle > 0f
+                ? GetSpreadRotation(baseRot, currentWeapon.spreadAngle)
+                : baseRot;
+
+            SpawnProjectile(shotRot);
         }
     }
 
@@ -122,9 +121,8 @@ public class ShootController : MonoBehaviour
 
     private Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
     {
-        float yaw   = Random.Range(-spreadAngle, spreadAngle);
-        float pitch = Random.Range(-spreadAngle, spreadAngle);
-        return baseRotation * Quaternion.Euler(pitch, yaw, 0f);
+        Vector2 spread = Random.insideUnitCircle * spreadAngle;
+        return baseRotation * Quaternion.Euler(spread.y, spread.x, 0f);
     }
 
     private void StartHipFire()

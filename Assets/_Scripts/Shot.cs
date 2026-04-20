@@ -3,21 +3,30 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Shot : MonoBehaviour
 {
-    public int   Damage      { get; private set; }
-    public float Speed       { get; private set; }
+    public int   Damage       { get; private set; }
+    public float Speed        { get; private set; }
     public float GravityForce { get; private set; }
 
-    // Assigned by ShootController via Initialize()
-    private GameObject decalPrefab;
+    [Header("Decal")]
+    [Tooltip("Check if your decal prefab uses a URP DecalProjector. Uncheck for a simple quad.")]
+    public bool useDecalProjector = true;
 
-    private Rigidbody rb;
-    private bool      initialized;
-    private Vector3   moveDirection;
+    private GameObject    decalPrefab;
+    private Rigidbody     rb;
+    private TrailRenderer trail;
+    private bool          initialized;
+    private Vector3       moveDirection;
+    private Vector3       spawnPoint;
+
+    public float DistanceFromSpawn;
+    public float despawnDistance = 100f;
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.useGravity = false;
+        rb    = GetComponent<Rigidbody>();
+        trail = GetComponentInChildren<TrailRenderer>(includeInactive: true);
+
+        rb.useGravity             = false;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
     }
 
@@ -25,15 +34,17 @@ public class Shot : MonoBehaviour
     {
         if (initialized) return;
 
-        Damage        = damage;
-        Speed         = speed;
-        GravityForce  = gravityForce;
-        decalPrefab   = decal;
+        Damage       = damage;
+        Speed        = speed;
+        GravityForce = gravityForce;
+        decalPrefab  = decal;
 
-        moveDirection      = transform.forward.normalized;
-        rb.linearVelocity  = moveDirection * Speed;
+        moveDirection     = transform.forward.normalized;
+        rb.linearVelocity = moveDirection * Speed;
+        spawnPoint        = transform.position;
+        initialized       = true;
 
-        initialized = true;
+        RandomizeTrail();
     }
 
     private void FixedUpdate()
@@ -45,33 +56,65 @@ public class Shot : MonoBehaviour
         v.z = moveDirection.z * Speed;
         v.y += GravityForce * Time.fixedDeltaTime;
         rb.linearVelocity = v;
+
+        DistanceFromSpawn = Vector3.Distance(spawnPoint, transform.position);
+        if (DistanceFromSpawn >= despawnDistance) Die();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        SpawnDecal(collision);
+        SpawnDecal(collision.GetContact(0), collision.transform);
+        Die();
+    }
+
+    // =========================================================
+    // DIE
+    // =========================================================
+    private void Die()
+    {
+        if (trail != null)
+            TrailFader.Detach(trail);
+
         Destroy(gameObject);
+    }
+
+    // =========================================================
+    // TRAIL RANDOMIZATION
+    // =========================================================
+    private void RandomizeTrail()
+    {
+        if (trail == null) return;
+
+        float widthScale = Random.Range(0.6f, 1.4f);
+        float tip        = Random.Range(0.005f, 0.02f);
+        float mid        = Random.Range(0.03f,  0.09f) * widthScale;
+        float tail       = Random.Range(0.01f,  0.05f) * widthScale;
+
+        trail.widthCurve = new AnimationCurve(
+            new Keyframe(0f,                        tip,  0f, 0f),
+            new Keyframe(Random.Range(0.3f, 0.6f), mid,  0f, 0f),
+            new Keyframe(1f,                        tail, 0f, 0f)
+        );
+        trail.widthMultiplier = 1f;
+        trail.time            = Random.Range(0.1f, 0.35f);
     }
 
     // =========================================================
     // DECAL
     // =========================================================
-    private void SpawnDecal(Collision collision)
+    private void SpawnDecal(ContactPoint contact, Transform parent)
     {
         if (decalPrefab == null) return;
 
-        // Use the first contact point for position + surface normal
-        ContactPoint contact = collision.GetContact(0);
-
-        // Offset slightly off the surface to avoid z-fighting
         Vector3    position = contact.point + contact.normal * 0.001f;
-
-        // Rotate so the decal's forward faces away from the surface (along the normal)
         Quaternion rotation = Quaternion.LookRotation(-contact.normal);
 
-        GameObject decal = Instantiate(decalPrefab, position, rotation);
-
-        // Parent to the hit object so the decal moves with it (e.g. moving platforms)
-        decal.transform.SetParent(collision.transform, worldPositionStays: true);
+        if (DecalManager.Instance != null)
+            DecalManager.Instance.Spawn(decalPrefab, position, rotation, parent);
+        else
+        {
+            var d = Instantiate(decalPrefab, position, rotation);
+            d.transform.SetParent(parent, worldPositionStays: true);
+        }
     }
 }
