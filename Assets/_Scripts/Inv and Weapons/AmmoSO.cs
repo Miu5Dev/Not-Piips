@@ -1,14 +1,12 @@
 using UnityEngine;
 
 [CreateAssetMenu(
-    fileName = "New Weapon",
-    menuName = "Object/Weapon/AmmoType",
+    fileName = "New Ammo",
+    menuName = "Objects/Ammo",
     order = 0)]
-public class AmmoSO : ScriptableObject
+public class AmmoSO : itemSO
 {
     [Header("Stats")]
-    public WeaponType weaponType;
-    public int damage;
     public float speed;
     public float gravityForce;
     
