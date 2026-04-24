@@ -25,9 +25,12 @@ public class InputSystem : MonoBehaviour
         inputs.Player.Jump.canceled += OnJumpInput;
         inputs.Player.Crouch.performed += OnCrouchInput;
         inputs.Player.Crouch.canceled += OnCrouchInput;
-        inputs.Player.Swap.performed += OnSwapInput;
-        inputs.Player.Swap.canceled += OnSwapInput;
-
+        inputs.Player.Shoot.performed += OnShootInput;
+        inputs.Player.Shoot.canceled += OnShootInput;
+        inputs.Player.Aim.performed += OnAimInput;
+        inputs.Player.Aim.canceled += OnAimInput;
+        
+        
         Debug.Log("[InputSystem] Initialized");
     }
 
@@ -113,9 +116,18 @@ public class InputSystem : MonoBehaviour
         });
     }
 
-    private void OnSwapInput(InputAction.CallbackContext context)
+    private void OnShootInput(InputAction.CallbackContext context)
     {
-        EventBus.Raise(new OnSwapInputEvent()
+        EventBus.Raise(new OnShootInputEvent()
+        {
+            pressed = context.performed
+        });
+    }
+    
+    
+    private void OnAimInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnAimInputEvent()
         {
             pressed = context.performed
         });

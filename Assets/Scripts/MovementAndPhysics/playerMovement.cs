@@ -57,40 +57,22 @@ public class PlayerMovement : MonoBehaviour
         Cursor.visible   = false;
     }
 
-    void OnEnable()
+    public void OnMove(Vector2 direction) => moveInput = direction;
+    public void OnJump(bool pressed) => jumpPressed = pressed;
+
+    public void OnAim(bool pressed)
     {
-        EventBus.Subscribe<OnMoveInputEvent>(OnMove);
-        EventBus.Subscribe<OnJumpInputEvent>(OnJump);
-        EventBus.Subscribe<OnActionInputEvent>(OnAim);
-
-        EventBus.Subscribe<OnHipFireStateChangedEvent>(OnHipFireStateChanged); // NUEVO
-    }
-
-    void OnDisable()
-    {
-        EventBus.Unsubscribe<OnMoveInputEvent>(OnMove);
-        EventBus.Unsubscribe<OnJumpInputEvent>(OnJump);
-        EventBus.Unsubscribe<OnActionInputEvent>(OnAim);
-
-        EventBus.Unsubscribe<OnHipFireStateChangedEvent>(OnHipFireStateChanged); // NUEVO
-    }
-
-    private void OnMove(OnMoveInputEvent e) => moveInput = e.Direction;
-    private void OnJump(OnJumpInputEvent e) => jumpPressed = e.pressed;
-
-    private void OnAim(OnActionInputEvent e)
-    {
-        isAiming = e.pressed;
+        isAiming = pressed;
 
         if (vcamFollow != null) vcamFollow.Priority = isAiming ? 0           : priorityNormal;
         if (vcamAim    != null) vcamAim.Priority    = isAiming ? priorityAim : 0;
     }
 
     // NUEVO: estado de hipfire
-    private void OnHipFireStateChanged(OnHipFireStateChangedEvent e)
+    public void OnHipFireStateChanged(Transform shooter, bool IsHipFiring)
     {
-        if (e.Shooter != transform) return;
-        isHipFiring = e.IsHipFiring;
+        if (shooter != transform) return;
+        isHipFiring = IsHipFiring;
     }
 
     void FixedUpdate()

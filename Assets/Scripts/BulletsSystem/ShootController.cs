@@ -144,9 +144,3 @@ public class ShootController : MonoBehaviour
         }
     }
 }
-
-public class OnHipFireStateChangedEvent
-{
-    public Transform Shooter;
-    public bool IsHipFiring;
-}
