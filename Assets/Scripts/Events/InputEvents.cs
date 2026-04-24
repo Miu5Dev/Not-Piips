@@ -38,6 +38,10 @@ public class OnJumpInputEvent : InputEventBase
 {
 }
 
-public class OnSwapInputEvent : InputEventBase
+public class OnShootInputEvent : InputEventBase
+{
+}
+
+public class OnAimInputEvent : InputEventBase
 {
 }

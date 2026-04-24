@@ -4,38 +4,39 @@ using Random = UnityEngine.Random;
 
 public class ShootController : MonoBehaviour
 {
-    [SerializeField] private WeaponSO currentWeapon;
+    [SerializeField] private WeaponSO  currentWeapon;
     [SerializeField] private Transform spawnpoint;
-    [SerializeField] private float hipFireDuration = 0.2f;
-    [SerializeField] private float shotSpawnDelay  = 0.06f;
+    [SerializeField] private float     hipFireDuration = 0.2f;
+    [SerializeField] private float     shotSpawnDelay  = 0.06f;
 
-    [Tooltip("Reference to AimTargetController to read the exact aim point at shoot time.")]
     [SerializeField] private AimTargetController aimTarget;
 
     private float hipFireTimer;
     private bool  isHipFiring;
     private float lastShotTime;
+    private bool  isFireHeld;
+    private bool  canSemiAutoShootAgain = true;
 
-    private bool isFireHeld;
-    private bool canSemiAutoShootAgain = true;
+    private WaitForSeconds             _waitForDelay;
+    private OnHipFireStateChangedEvent _hipFireOn;
+    private OnHipFireStateChangedEvent _hipFireOff;
 
-    // =========================================================
-    // UPDATE
-    // =========================================================
+    private void Awake()
+    {
+        _waitForDelay = new WaitForSeconds(shotSpawnDelay);
+        _hipFireOn    = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
+        _hipFireOff   = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+    }
+
     private void Update()
     {
         HandleHipFireTimer();
 
-        if (currentWeapon == null || currentWeapon.ammo == null)
-            return;
-
+        if (currentWeapon == null || currentWeapon.ammo == null) return;
         if (currentWeapon.shotType == ShotType.Automatic && isFireHeld)
             TryShoot();
     }
 
-    // =========================================================
-    // PUBLIC API — called from EventBusListener in the Inspector
-    // =========================================================
     public void OnFirePressed()
     {
         isFireHeld = true;
@@ -59,13 +60,10 @@ public class ShootController : MonoBehaviour
 
     public void OnFireReleased()
     {
-        isFireHeld = false;
+        isFireHeld            = false;
         canSemiAutoShootAgain = true;
     }
 
-    // =========================================================
-    // INTERNAL
-    // =========================================================
     private void TryShoot()
     {
         if (currentWeapon == null || currentWeapon.ammo == null) return;
@@ -78,10 +76,8 @@ public class ShootController : MonoBehaviour
 
     private IEnumerator FireAfterDelay()
     {
-        yield return new WaitForSeconds(shotSpawnDelay);
+        yield return _waitForDelay;
 
-        // Read AimPoint HERE — at actual spawn time, with spawnpoint already in its new position.
-        // This guarantees direction = (currentAimPoint - currentSpawnPos), always in sync.
         Vector3 aimPoint = aimTarget != null
             ? aimTarget.AimPoint
             : spawnpoint.position + spawnpoint.forward * 100f;
@@ -93,24 +89,24 @@ public class ShootController : MonoBehaviour
 
         int pellets = Mathf.Max(1, currentWeapon.pellets);
 
-        if (pellets == 1)
+        for (int i = 0; i < pellets; i++)
         {
-            SpawnProjectile(baseRot);
-        }
-        else
-        {
-            for (int i = 0; i < pellets; i++)
-                SpawnProjectile(GetSpreadRotation(baseRot, currentWeapon.spreadAngle));
+            Quaternion shotRot = currentWeapon.spreadAngle > 0f
+                ? GetSpreadRotation(baseRot, currentWeapon.spreadAngle)
+                : baseRot;
+
+            SpawnProjectile(shotRot);
         }
     }
 
     private void SpawnProjectile(Quaternion rotation)
     {
-        var go = Instantiate(currentWeapon.ammo.ammoPrefab, spawnpoint.position, rotation);
-
-        Shot shot = go.GetComponent<Shot>();
-        if (shot == null)
-            shot = go.AddComponent<Shot>();
+        // GetOrCreate ensures a pool always exists — no manual setup needed
+        Shot shot = BulletPool.GetOrCreate().Get(
+            currentWeapon.ammo.ammoPrefab,
+            spawnpoint.position,
+            rotation
+        );
 
         shot.Initialize(
             currentWeapon.damage,
@@ -120,25 +116,19 @@ public class ShootController : MonoBehaviour
         );
     }
 
-    private Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
+    private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
     {
-        float yaw   = Random.Range(-spreadAngle, spreadAngle);
-        float pitch = Random.Range(-spreadAngle, spreadAngle);
-        return baseRotation * Quaternion.Euler(pitch, yaw, 0f);
+        Vector2 spread = Random.insideUnitCircle * spreadAngle;
+        return baseRotation * Quaternion.Euler(spread.y, spread.x, 0f);
     }
 
     private void StartHipFire()
     {
         hipFireTimer = hipFireDuration;
-
         if (!isHipFiring)
         {
             isHipFiring = true;
-            EventBus.Raise(new OnHipFireStateChangedEvent
-            {
-                Shooter     = transform,
-                IsHipFiring = true
-            });
+            EventBus.Raise(_hipFireOn);
         }
     }
 
@@ -147,21 +137,10 @@ public class ShootController : MonoBehaviour
         if (!isHipFiring) return;
 
         hipFireTimer -= Time.deltaTime;
-
         if (hipFireTimer <= 0f)
         {
             isHipFiring = false;
-            EventBus.Raise(new OnHipFireStateChangedEvent
-            {
-                Shooter     = transform,
-                IsHipFiring = false
-            });
+            EventBus.Raise(_hipFireOff);
         }
     }
-}
-
-public class OnHipFireStateChangedEvent
-{
-    public Transform Shooter;
-    public bool IsHipFiring;
 }
