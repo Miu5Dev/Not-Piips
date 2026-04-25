@@ -388,7 +388,7 @@ public class BindingCondition
 // SMART BINDING
 // =========================================================
 [Serializable]
-public enum ParamSourceMode { EventField, FixedValue, ComponentField }
+public enum ParamSourceMode { EventField, FixedValue, ComponentField, WholeEvent }
 
 [Serializable]
 public class ParamSource
@@ -411,7 +411,7 @@ public class SmartBinding
     public BindingLogic logic = BindingLogic.If;
 
     public bool IsConfigured() =>
-        targetObject != null && !string.IsNullOrEmpty(methodName) && paramSources.Count > 0;
+        targetObject != null && !string.IsNullOrEmpty(methodName);
 
     public (Func<object, bool> check, Action<object> execute) CompileSplit(Type eventType)
     {
@@ -431,7 +431,17 @@ public class SmartBinding
             var ps = paramSources[i];
             var pType = mParams[i].ParameterType;
 
-            if (ps.mode == ParamSourceMode.EventField)
+            if (ps.mode == ParamSourceMode.WholeEvent)
+            {
+                // Pass the entire event object — no field lookup needed
+                if (!pType.IsAssignableFrom(eventType))
+                {
+                    Debug.LogWarning($"[SmartBinding] WholeEvent: event type '{eventType.Name}' is not assignable to param type '{pType.Name}'");
+                    return (null, null);
+                }
+                resolvers[i] = evtObj => evtObj;
+            }
+            else if (ps.mode == ParamSourceMode.EventField)
             {
                 var evtMember = (MemberInfo)eventType.GetField(ps.eventFieldName, BindingFlags.Public | BindingFlags.Instance)
                                 ?? eventType.GetProperty(ps.eventFieldName, BindingFlags.Public | BindingFlags.Instance);
@@ -703,26 +713,98 @@ public class EventBusListenerEditor : Editor
 
             bool showCondition = logicVal != BindingLogic.Else;
 
-            // Component picker
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Component", GUILayout.Width(80));
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(targetProp, GUIContent.none);
-            if (EditorGUI.EndChangeCheck()) { methodProp.stringValue = ""; fieldsProp.ClearArray(); _methodCache.Remove(i); }
-            EditorGUILayout.EndHorizontal();
+            // ── GameObject + Component picker (estilo UnityEvent) ─────────────────
+            {
+                var currentTarget = targetProp.objectReferenceValue;
+                GameObject currentGO = currentTarget is Component c0 ? c0.gameObject : currentTarget as GameObject;
+
+                // Fila 1: GameObject
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("GameObject", GUILayout.Width(80));
+                EditorGUI.BeginChangeCheck();
+                // Acepta tanto GameObject como Component directo
+                var droppedObj = EditorGUILayout.ObjectField(currentGO, typeof(UnityEngine.Object), true);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    GameObject newGO = droppedObj as GameObject
+                                    ?? (droppedObj as Component)?.gameObject;
+                    Component droppedComp = droppedObj as Component;
+
+                    if (newGO != currentGO || droppedComp != null)
+                    {
+                        if (newGO == null)
+                        {
+                            targetProp.objectReferenceValue = null;
+                        }
+                        else if (droppedComp != null)
+                        {
+                            // Arrastraron un componente directamente → usarlo tal cual
+                            targetProp.objectReferenceValue = droppedComp;
+                        }
+                        else
+                        {
+                            // Arrastraron un GameObject → auto-select primer componente significativo
+                            var comps = newGO.GetComponents<Component>();
+                            var first = comps.FirstOrDefault(c => !(c is Transform)) ?? comps.FirstOrDefault();
+                            targetProp.objectReferenceValue = first;
+                        }
+                        methodProp.stringValue = "";
+                        fieldsProp.ClearArray();
+                        _methodCache.Remove(i);
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+
+                // Fila 2: Component picker (solo si hay un GO asignado)
+                if (currentGO != null)
+                {
+                    var allComps = currentGO.GetComponents<Component>();
+                    string[] compNames = allComps.Select(c => c.GetType().Name).ToArray();
+                    // Manejo de duplicados (ej: dos BoxCollider)
+                    var seen = new Dictionary<string, int>();
+                    string[] compLabels = allComps.Select(c => {
+                        string n = c.GetType().Name;
+                        if (!seen.ContainsKey(n)) { seen[n] = 0; return n; }
+                        seen[n]++; return $"{n} [{seen[n]}]";
+                    }).ToArray();
+
+                    int curIdx = currentTarget is Component curComp
+                        ? Mathf.Max(0, Array.IndexOf(allComps, curComp))
+                        : 0;
+
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField("Component", GUILayout.Width(80));
+                    EditorGUI.BeginChangeCheck();
+                    int newIdx = EditorGUILayout.Popup(curIdx, compLabels);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        targetProp.objectReferenceValue = allComps[newIdx];
+                        methodProp.stringValue = "";
+                        fieldsProp.ClearArray();
+                        _methodCache.Remove(i);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+            }
 
             // Method picker
             var targetObj = targetProp.objectReferenceValue;
             if (targetObj != null)
             {
                 if (!_methodCache.TryGetValue(i, out var methods))
-                    _methodCache[i] = methods = GetEligibleMethods(targetObj.GetType(), evtFields);
+                    _methodCache[i] = methods = GetEligibleMethods(targetObj.GetType(), evtFields, evtType);
 
                 if (methods.Length == 0)
                     EditorGUILayout.HelpBox("No compatible methods found.", MessageType.Info);
                 else
                 {
                     string[] methodLabels = methods.Select(m => {
+                        // Property setter → mostrar como "propName (type)"
+                        if (m.IsSpecialName && m.Name.StartsWith("set_"))
+                        {
+                            var p = m.GetParameters()[0];
+                            return $"{m.Name.Substring(4)} = ({p.ParameterType.Name})";
+                        }
                         var ps = m.GetParameters();
                         string pStr = ps.Length == 0 ? "()" : "(" + string.Join(", ", ps.Select(p => $"{p.ParameterType.Name} {p.Name}")) + ")";
                         return $"{m.Name}{pStr}";
@@ -750,9 +832,17 @@ public class EventBusListenerEditor : Editor
                             var fp = fieldsProp.GetArrayElementAtIndex(p);
                             var modeSP = fp?.FindPropertyRelative("mode");
                             if (modeSP == null) continue;
-                            modeSP.enumValueIndex = 0;
-                            var match = evtFields.FirstOrDefault(f => f.FieldType == ps[p].ParameterType && !IsAlreadyUsedPS(fieldsProp, f.Name, p));
-                            fp.FindPropertyRelative("eventFieldName").stringValue = match?.Name ?? "";
+                            // Auto-mode: whole event if param type matches event type
+                            if (evtType != null && ps[p].ParameterType.IsAssignableFrom(evtType))
+                            {
+                                modeSP.enumValueIndex = (int)ParamSourceMode.WholeEvent;
+                            }
+                            else
+                            {
+                                modeSP.enumValueIndex = 0; // EventField default
+                                var match = evtFields.FirstOrDefault(f => f.FieldType == ps[p].ParameterType && !IsAlreadyUsedPS(fieldsProp, f.Name, p));
+                                fp.FindPropertyRelative("eventFieldName").stringValue = match?.Name ?? "";
+                            }
                             fp.FindPropertyRelative("fixedValue").stringValue = "";
                             fp.FindPropertyRelative("componentMember").stringValue = "";
                         }
@@ -785,16 +875,32 @@ public class EventBusListenerEditor : Editor
                             }
                             var pType = mps[p].ParameterType;
                             EditorGUILayout.BeginVertical(GUI.skin.box);
+
+                            var srcMode = (ParamSourceMode)modeProp.enumValueIndex;
+
                             using (new EditorGUILayout.HorizontalScope())
                             {
                                 GUI.color = new Color(0.7f, 1f, 0.8f);
                                 EditorGUILayout.LabelField($"{pType.Name} {mps[p].Name}", EditorStyles.miniBoldLabel, GUILayout.Width(140));
                                 GUI.color = Color.white;
-                                EditorGUILayout.LabelField("source:", GUILayout.Width(46));
-                                EditorGUILayout.PropertyField(modeProp, GUIContent.none);
+                                if (srcMode == ParamSourceMode.WholeEvent)
+                                {
+                                    // Locked — no dropdown, no extra config
+                                    GUI.color = new Color(1f, 0.85f, 0.4f);
+                                    EditorGUILayout.LabelField("● whole event", EditorStyles.miniLabel);
+                                    GUI.color = Color.white;
+                                }
+                                else
+                                {
+                                    EditorGUILayout.LabelField("source:", GUILayout.Width(46));
+                                    EditorGUILayout.PropertyField(modeProp, GUIContent.none);
+                                }
                             }
-                            var srcMode = (ParamSourceMode)modeProp.enumValueIndex;
-                            if (srcMode == ParamSourceMode.EventField)
+                            if (srcMode == ParamSourceMode.WholeEvent)
+                            {
+                                // Nothing to configure — event object passed directly
+                            }
+                            else if (srcMode == ParamSourceMode.EventField)
                             {
                                 var compat = evtFields.Where(f => IsCompatible(f.FieldType, pType)).ToArray();
                                 if (compat.Length == 0) EditorGUILayout.HelpBox($"No event fields of type {pType.Name}", MessageType.Warning);
@@ -1140,15 +1246,26 @@ public class EventBusListenerEditor : Editor
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
-    private static MethodInfo[] GetEligibleMethods(Type type, FieldInfo[] eventFields)
+    private static MethodInfo[] GetEligibleMethods(Type type, FieldInfo[] eventFields, Type evtType = null)
     {
-        return type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+        // Métodos void normales — param compatible con event field O con el tipo del evento completo
+        var regular = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Where(m => !m.IsSpecialName && m.ReturnType == typeof(void))
             .Where(m => {
                 var ps = m.GetParameters();
                 if (ps.Length == 0) return true;
-                return ps.All(p => eventFields.Any(f => IsCompatible(f.FieldType, p.ParameterType)));
-            })
+                return ps.All(p =>
+                    (evtType != null && p.ParameterType.IsAssignableFrom(evtType)) ||  // whole event param
+                    eventFields.Any(f => IsCompatible(f.FieldType, p.ParameterType)));  // field param
+            });
+
+        // Setters de propiedades compatibles con un event field
+        var propSetters = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite && p.GetSetMethod(false) != null)
+            .Where(p => eventFields.Length == 0 || eventFields.Any(f => IsCompatible(f.FieldType, p.PropertyType)))
+            .Select(p => p.GetSetMethod(false));
+
+        return regular.Concat(propSetters)
             .OrderBy(m => m.GetParameters().Length == 0 ? 1 : 0)
             .ThenBy(m => m.Name)
             .ToArray();

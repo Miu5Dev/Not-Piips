@@ -12,7 +12,7 @@ public class WeaponSO : itemSO
     public ShotType shotType;
     public AmmoSO ammo;
     public int damage;
-    public int currentBullets;
+    public int maxCartridges;
 
     [Header("Fire")]
     public float fireRate = 8f;
