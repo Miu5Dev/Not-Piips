@@ -12,11 +12,8 @@ public class CameraTargetController : MonoBehaviour
 
     // -------------------------------------------------------
     private float pitch = 0f; // rotación vertical acumulada
-
-    void OnEnable()  => EventBus.Subscribe<OnLookInputEvent>(OnLook);
-    void OnDisable() => EventBus.Unsubscribe<OnLookInputEvent>(OnLook);
-
-    private void OnLook(OnLookInputEvent e)
+    
+    public void OnLook(OnLookInputEvent e)
     {
         float sens = e.Source == LookInputSource.Gamepad
             ? gamepadSensitivity * Time.deltaTime
