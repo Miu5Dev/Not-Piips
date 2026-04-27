@@ -14,6 +14,6 @@ public class itemSO : ScriptableObject
     public float weight;
     
     [Header("InvSystem")] 
-    public Vector2 size;
-    public Image image;
+    public Vector2Int size;
+    public Sprite icon;
 }
