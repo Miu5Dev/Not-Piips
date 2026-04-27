@@ -608,7 +608,7 @@ public class EventBusListenerEditor : Editor
         typeof(Behaviour), typeof(MonoBehaviour), typeof(Transform),
     };
 
-    private static readonly string[] _goProps = { "activeSelf", "activeInHierarchy", "name", "tag" };
+    private static readonly string[] _goProps = { "activeSelf", "activeInHierarchy", "name", "tag", "layer", "isStatic" };
 
     public override void OnInspectorGUI()
     {
@@ -755,22 +755,28 @@ public class EventBusListenerEditor : Editor
                 }
                 EditorGUILayout.EndHorizontal();
 
-                // Fila 2: Component picker (solo si hay un GO asignado)
+                // Fila 2: Component picker — "── GameObject ──" en índice 0
                 if (currentGO != null)
                 {
                     var allComps = currentGO.GetComponents<Component>();
-                    string[] compNames = allComps.Select(c => c.GetType().Name).ToArray();
-                    // Manejo de duplicados (ej: dos BoxCollider)
-                    var seen = new Dictionary<string, int>();
-                    string[] compLabels = allComps.Select(c => {
-                        string n = c.GetType().Name;
-                        if (!seen.ContainsKey(n)) { seen[n] = 0; return n; }
-                        seen[n]++; return $"{n} [{seen[n]}]";
-                    }).ToArray();
 
-                    int curIdx = currentTarget is Component curComp
-                        ? Mathf.Max(0, Array.IndexOf(allComps, curComp))
-                        : 0;
+                    // ¿El target actual es el propio GameObject?
+                    bool goIsSelected = targetProp.objectReferenceValue is GameObject;
+
+                    // Labels: "── GameObject ──" primero, luego componentes
+                    var seen = new Dictionary<string, int>();
+                    string[] compLabels = new[] { "── GameObject ──" }
+                        .Concat(allComps.Select(c => {
+                            string n = c.GetType().Name;
+                            if (!seen.ContainsKey(n)) { seen[n] = 0; return n; }
+                            seen[n]++; return $"{n} [{seen[n]}]";
+                        })).ToArray();
+
+                    int curIdx = goIsSelected
+                        ? 0
+                        : (targetProp.objectReferenceValue is Component curComp
+                            ? Mathf.Max(1, Array.IndexOf(allComps, curComp) + 1)
+                            : 1);
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Component", GUILayout.Width(80));
@@ -778,7 +784,10 @@ public class EventBusListenerEditor : Editor
                     int newIdx = EditorGUILayout.Popup(curIdx, compLabels);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        targetProp.objectReferenceValue = allComps[newIdx];
+                        // Índice 0 → apuntar al GameObject mismo
+                        targetProp.objectReferenceValue = newIdx == 0
+                            ? (UnityEngine.Object)currentGO
+                            : allComps[newIdx - 1];
                         methodProp.stringValue = "";
                         fieldsProp.ClearArray();
                         _methodCache.Remove(i);
@@ -1256,13 +1265,14 @@ public class EventBusListenerEditor : Editor
                 if (ps.Length == 0) return true;
                 return ps.All(p =>
                     (evtType != null && p.ParameterType.IsAssignableFrom(evtType)) ||  // whole event param
-                    eventFields.Any(f => IsCompatible(f.FieldType, p.ParameterType)));  // field param
+                    eventFields.Any(f => IsCompatible(f.FieldType, p.ParameterType)) || // field param
+                    TypeHelper.IsSupported(p.ParameterType));                            // fixed-value fallback
             });
 
         // Setters de propiedades compatibles con un event field
         var propSetters = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.CanWrite && p.GetSetMethod(false) != null)
-            .Where(p => eventFields.Length == 0 || eventFields.Any(f => IsCompatible(f.FieldType, p.PropertyType)))
+            .Where(p => eventFields.Length == 0 || eventFields.Any(f => IsCompatible(f.FieldType, p.PropertyType)) || TypeHelper.IsSupported(p.PropertyType))
             .Select(p => p.GetSetMethod(false));
 
         return regular.Concat(propSetters)
@@ -1303,6 +1313,15 @@ public class EventBusListenerEditor : Editor
 
     private static MemberInfo[] GetComponentMembers(UnityEngine.Object targetObj, Type filterType)
     {
+        // Si el target es el propio GameObject, exponer sus propiedades clave
+        if (targetObj is GameObject)
+            return GetGameObjectMembers()
+                .Where(m => {
+                    if (filterType == null) return true;
+                    Type mt = m is FieldInfo fi3 ? fi3.FieldType : ((PropertyInfo)m).PropertyType;
+                    return mt == filterType || (IsNumericType(mt) && IsNumericType(filterType));
+                }).ToArray();
+
         return targetObj.GetType()
             .GetFields(BindingFlags.Public | BindingFlags.Instance)
             .Where(f => !_unityBaseTypes.Contains(f.DeclaringType))
