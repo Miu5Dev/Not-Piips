@@ -13,30 +13,42 @@ public class InputSystem : MonoBehaviour
 
         // Movement
         inputs.Player.Move.performed += OnMovePerformed;
-        inputs.Player.Move.canceled  += OnMoveCanceled;
+        inputs.Player.Move.canceled += OnMoveCanceled;
 
         // Look
         inputs.Player.Look.performed += OnLookPerformed;
-        inputs.Player.Look.canceled  += OnLookCanceled;
+        inputs.Player.Look.canceled += OnLookCanceled;
 
         // Button inputs
         inputs.Player.Action.performed += OnActionInput;
-        inputs.Player.Action.canceled  += OnActionInput;
-        inputs.Player.Jump.performed   += OnJumpInput;
-        inputs.Player.Jump.canceled    += OnJumpInput;
+        inputs.Player.Action.canceled += OnActionInput;
+        inputs.Player.Jump.performed += OnJumpInput;
+        inputs.Player.Jump.canceled += OnJumpInput;
         inputs.Player.Crouch.performed += OnCrouchInput;
-        inputs.Player.Crouch.canceled  += OnCrouchInput;
-        inputs.Player.Shoot.performed  += OnShootInput;
-        inputs.Player.Shoot.canceled   += OnShootInput;
-        inputs.Player.Aim.performed    += OnAimInput;
-        inputs.Player.Aim.canceled     += OnAimInput;
-        inputs.Player.OpenInventory.performed    += OnOpenInventoryInput;
-        inputs.Player.OpenInventory.canceled     += OnOpenInventoryInput;
+        inputs.Player.Crouch.canceled += OnCrouchInput;
+        inputs.Player.Shoot.performed += OnShootInput;
+        inputs.Player.Shoot.canceled += OnShootInput;
+        inputs.Player.Aim.performed += OnAimInput;
+        inputs.Player.Aim.canceled += OnAimInput;
+        inputs.Player.OpenInventory.performed += OnOpenInventoryInput;
+        inputs.Player.OpenInventory.canceled += OnOpenInventoryInput;
+
+        // Inventory inputs
+        inputs.Player.Reload.performed += OnReloadInput;
+        inputs.Player.Reload.canceled += OnReloadInput;
+        inputs.Player.invRotate.performed += OnInvRotateInput;
+        inputs.Player.invRotate.canceled += OnInvRotateInput;
+        inputs.Player.invLeftClick.performed += OnInvLeftClickInput;
+        inputs.Player.invLeftClick.canceled += OnInvLeftClickInput;
+        inputs.Player.invRightClick.performed += OnInvRightClickInput;
+        inputs.Player.invRightClick.canceled += OnInvRightClickInput;
+        inputs.Player.PointerPosition.performed += OnPointerPosition;
+        inputs.Player.PointerPosition.canceled += OnPointerPosition;
 
         Debug.Log("[InputSystem] Initialized");
     }
 
-    void OnEnable()  => inputs.Player.Enable();
+    void OnEnable() => inputs.Player.Enable();
     void OnDisable() => inputs.Player.Disable();
 
     // ========================================================================
@@ -52,8 +64,8 @@ public class InputSystem : MonoBehaviour
         EventBus.Raise(new OnLookInputEvent()
         {
             pressed = true,
-            Delta   = context.ReadValue<Vector2>(),
-            Source  = currentLookSource
+            Delta = context.ReadValue<Vector2>(),
+            Source = currentLookSource
         });
     }
 
@@ -62,8 +74,8 @@ public class InputSystem : MonoBehaviour
         EventBus.Raise(new OnLookInputEvent()
         {
             pressed = false,
-            Delta   = Vector2.zero,
-            Source  = currentLookSource
+            Delta = Vector2.zero,
+            Source = currentLookSource
         });
     }
 
@@ -75,7 +87,7 @@ public class InputSystem : MonoBehaviour
     {
         EventBus.Raise(new OnMoveInputEvent()
         {
-            pressed   = true,
+            pressed = true,
             Direction = context.ReadValue<Vector2>()
         });
     }
@@ -84,7 +96,7 @@ public class InputSystem : MonoBehaviour
     {
         EventBus.Raise(new OnMoveInputEvent()
         {
-            pressed   = false,
+            pressed = false,
             Direction = Vector2.zero
         });
     }
@@ -132,11 +144,57 @@ public class InputSystem : MonoBehaviour
             pressed = context.performed
         });
     }
+
     private void OnOpenInventoryInput(InputAction.CallbackContext context)
     {
         EventBus.Raise(new OnOpenInventoryEvent()
         {
             pressed = context.performed
+        });
+    }
+
+    // ========================================================================
+    // INVENTORY INPUTS
+    // ========================================================================
+
+    private void OnReloadInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnReloadKeyEvent()
+        {
+            pressed = context.performed
+        });
+    }
+
+    private void OnInvRotateInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnRotateKeyEvent()
+        {
+            pressed = context.performed
+        });
+    }
+
+    private void OnInvLeftClickInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnLeftClickEvent()
+        {
+            pressed = context.performed
+        });
+    }
+
+    private void OnInvRightClickInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnRightClickEvent()
+        {
+            pressed = context.performed
+        });
+    }
+    
+    private void OnPointerPosition(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnPointerPositionEvent
+        {
+            pressed = context.performed,
+            Position = context.ReadValue<Vector2>()
         });
     }
 }
