@@ -9,43 +9,43 @@ public class InventoryNavigator : MonoBehaviour
     [SerializeField] float moveCooldown = 0.12f;
 
     [Header("Cursor Colors")]
-    [SerializeField] Color cursorNormal  = new Color(0.5f, 0.9f, 1f, 0.9f);
-    [SerializeField] Color cursorDiscard = new Color(1f, 0.5f, 0.3f, 0.9f);
+    [SerializeField] Color cursorNormal  = new Color(0.5f, 0.9f, 1f,  0.9f);
+    [SerializeField] Color cursorDiscard = new Color(1f,   0.5f, 0.3f, 0.9f);
 
     [Header("Cursor Visual")]
     [SerializeField] float highlightScale = 0.55f;
 
-    [Header("Referencias (opcional)")]
-    [SerializeField] InventoryGridUI      gridUI;
+    [Header("References (optional)")]
+    [SerializeField] InventoryGridUI     gridUI;
     [SerializeField] InventoryDragHandler dragHandler;
 
     enum SlotType { Grid, Wildcard, Discard }
     struct Slot
     {
-        public SlotType type;
+        public SlotType  type;
         public Vector2Int cell;
     }
 
-    Slot                   _currentSlot;
-    float                  _lastMoveTime = -1f;
-    float                  _lastInputTime = -1f;
-    bool                   _isNavigating;
+    Slot   _currentSlot;
+    float  _lastMoveTime  = -1f;
+    float  _lastInputTime = -1f;
+    bool   _isNavigating;
 
-    InventoryGridUI        _gridUI;
-    InventoryDragHandler   _dragHandler;
-    Canvas                 _canvas;
+    InventoryGridUI      _gridUI;
+    InventoryDragHandler _dragHandler;
+    Canvas               _canvas;
 
-    RectTransform          _highlight;
-    Image                  _highlightImg;
+    RectTransform _highlight;
+    Image         _highlightImg;
 
-    Vector2                _lastMousePos;
+    Vector2 _lastMousePos;
 
     public bool IsNavigating => _isNavigating;
 
     void Awake()
     {
-        Instance = this;
-        _gridUI = gridUI != null ? gridUI : GetComponentInParent<InventoryGridUI>();
+        Instance    = this;
+        _gridUI     = gridUI     != null ? gridUI     : GetComponentInParent<InventoryGridUI>();
         if (_gridUI == null) _gridUI = InventoryGridUI.Instance;
         _dragHandler = dragHandler != null ? dragHandler : GetComponent<InventoryDragHandler>();
         if (_dragHandler == null) _dragHandler = InventoryDragHandler.Instance;
@@ -53,7 +53,7 @@ public class InventoryNavigator : MonoBehaviour
 
         if (_gridUI == null)
         {
-            Debug.LogError("[InventoryNavigator] InventoryGridUI no encontrado.");
+            Debug.LogError("[InventoryNavigator] InventoryGridUI not found.");
             return;
         }
         CreateHighlight();
@@ -86,7 +86,7 @@ public class InventoryNavigator : MonoBehaviour
     {
         if (_gridUI.PanelRt == null)
         {
-            Debug.LogError("[InventoryNavigator] PanelRt es null.");
+            Debug.LogError("[InventoryNavigator] PanelRt is null.");
             return;
         }
 
@@ -94,36 +94,36 @@ public class InventoryNavigator : MonoBehaviour
         go.transform.SetParent(_gridUI.PanelRt, false);
         go.transform.SetAsLastSibling();
 
-        _highlight = go.GetComponent<RectTransform>();
-        _highlight.anchorMin = _highlight.anchorMax = new Vector2(0.5f, 0.5f);
-        _highlight.pivot = new Vector2(0.5f, 0.5f);
+        _highlight            = go.GetComponent<RectTransform>();
+        _highlight.anchorMin  = _highlight.anchorMax = new Vector2(0.5f, 0.5f);
+        _highlight.pivot      = new Vector2(0.5f, 0.5f);
 
         float size = _gridUI.cellSize * highlightScale;
-        _highlight.sizeDelta = new Vector2(size, size);
+        _highlight.sizeDelta  = new Vector2(size, size);
         _highlight.localScale = Vector3.one;
 
-        _highlightImg = go.GetComponent<Image>();
-        _highlightImg.sprite = null;
-        _highlightImg.color = cursorNormal;
+        _highlightImg               = go.GetComponent<Image>();
+        _highlightImg.sprite        = null;
+        _highlightImg.color         = cursorNormal;
         _highlightImg.raycastTarget = false;
 
         var border = new GameObject("Border", typeof(RectTransform), typeof(Image));
         border.transform.SetParent(_highlight, false);
-        var bRt = border.GetComponent<RectTransform>();
-        bRt.anchorMin = bRt.anchorMax = new Vector2(0.5f, 0.5f);
-        bRt.pivot = new Vector2(0.5f, 0.5f);
-        bRt.sizeDelta = new Vector2(size * 0.9f, size * 0.9f);
-        var bImg = border.GetComponent<Image>();
-        bImg.type = Image.Type.Sliced;
-        bImg.fillCenter = false;
-        bImg.color = Color.white;
+        var bRt          = border.GetComponent<RectTransform>();
+        bRt.anchorMin    = bRt.anchorMax = new Vector2(0.5f, 0.5f);
+        bRt.pivot        = new Vector2(0.5f, 0.5f);
+        bRt.sizeDelta    = new Vector2(size * 0.9f, size * 0.9f);
+        var bImg         = border.GetComponent<Image>();
+        bImg.type        = Image.Type.Sliced;
+        bImg.fillCenter  = false;
+        bImg.color       = Color.white;
         bImg.raycastTarget = false;
 
         _currentSlot = new Slot { type = SlotType.Grid, cell = Vector2Int.zero };
         UpdateHighlightPosition();
     }
 
-    // ── Eventos ──────────────────────────────────────────────────────────
+    // ── Events ──────────────────────────────────────────────────────────
 
     public void HandleMove(OnMoveInputEvent e)
     {
@@ -132,9 +132,9 @@ public class InventoryNavigator : MonoBehaviour
         if (dir == Vector2.zero) return;
 
         if (Time.time - _lastMoveTime < moveCooldown) return;
-        _lastMoveTime = Time.time;
+        _lastMoveTime  = Time.time;
         _lastInputTime = Time.time;
-        _isNavigating = true;
+        _isNavigating  = true;
 
         if (_dragHandler.IsDragging)
             MoveWhileDragging(dir);
@@ -200,8 +200,10 @@ public class InventoryNavigator : MonoBehaviour
     public void HandleRightClick(OnRightClickEvent e)
     {
         if (!e.pressed || !_isNavigating) return;
+        // FIX: Call CancelDrag() directly instead of HandleRightClick(),
+        // which was blocking itself because IsNavigating == true.
         if (_dragHandler.IsDragging)
-            _dragHandler.HandleRightClick(e);
+            _dragHandler.CancelDrag();
     }
 
     public void HandleRotate(OnRotateKeyEvent e)
@@ -209,8 +211,15 @@ public class InventoryNavigator : MonoBehaviour
         if (!e.pressed || !_isNavigating) return;
         if (_dragHandler.IsDragging)
         {
-            _dragHandler.HandleRotate(e);
-            PositionHeldItem();   // ← feedback inmediato tras rotar
+            // FIX: Rotate the held item directly instead of calling
+            // _dragHandler.HandleRotate(e), which was blocking itself
+            // with the "if (IsNavigating) return" guard, making rotation
+            // impossible during WASD navigation.
+            var held = _dragHandler.HeldItem;
+            if (held != null && InventoryGridUI.Instance != null)
+                held.Reposition(held.Origin, !held.Rotated);
+
+            PositionHeldItem(); // immediate visual feedback after rotating
         }
     }
 
@@ -223,7 +232,7 @@ public class InventoryNavigator : MonoBehaviour
         _lastMousePos = e.Position;
     }
 
-    // ── Movimiento del cursor ───────────────────────────────────────────
+    // ── Cursor movement ─────────────────────────────────────────────────
 
     void MoveCursor(Vector2 dir)
     {
@@ -311,7 +320,7 @@ public class InventoryNavigator : MonoBehaviour
         }
     }
 
-    // ── Posicionamiento del resalte ─────────────────────────────────────
+    // ── Highlight positioning ────────────────────────────────────────────
 
     void UpdateHighlightPosition()
     {
@@ -335,7 +344,7 @@ public class InventoryNavigator : MonoBehaviour
 
         if (target != null)
         {
-            _highlight.position = target.position;
+            _highlight.position  = target.position;
             _highlight.sizeDelta = target.sizeDelta * highlightScale;
             _highlight.gameObject.SetActive(true);
         }
@@ -356,15 +365,9 @@ public class InventoryNavigator : MonoBehaviour
         RectTransform rt = null;
         switch (_currentSlot.type)
         {
-            case SlotType.Grid:
-                rt = GetCellRect(_currentSlot.cell.x, _currentSlot.cell.y);
-                break;
-            case SlotType.Wildcard:
-                rt = _gridUI.WildcardSlot;
-                break;
-            case SlotType.Discard:
-                rt = _gridUI.DiscardSlot;
-                break;
+            case SlotType.Grid:     rt = GetCellRect(_currentSlot.cell.x, _currentSlot.cell.y); break;
+            case SlotType.Wildcard: rt = _gridUI.WildcardSlot; break;
+            case SlotType.Discard:  rt = _gridUI.DiscardSlot;  break;
         }
         if (rt == null) return Vector2.zero;
 
