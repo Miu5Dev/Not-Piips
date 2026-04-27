@@ -30,6 +30,8 @@ public class InputSystem : MonoBehaviour
         inputs.Player.Shoot.canceled   += OnShootInput;
         inputs.Player.Aim.performed    += OnAimInput;
         inputs.Player.Aim.canceled     += OnAimInput;
+        inputs.Player.OpenInventory.performed    += OnOpenInventoryInput;
+        inputs.Player.OpenInventory.canceled     += OnOpenInventoryInput;
 
         Debug.Log("[InputSystem] Initialized");
     }
@@ -126,6 +128,13 @@ public class InputSystem : MonoBehaviour
     private void OnAimInput(InputAction.CallbackContext context)
     {
         EventBus.Raise(new OnAimInputEvent()
+        {
+            pressed = context.performed
+        });
+    }
+    private void OnOpenInventoryInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnOpenInventoryEvent()
         {
             pressed = context.performed
         });
