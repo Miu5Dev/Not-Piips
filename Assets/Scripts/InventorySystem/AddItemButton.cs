@@ -1,21 +1,17 @@
 using UnityEngine;
-using UnityEngine.UI;
 
-[RequireComponent(typeof(Button))]
 public class AddItemButton : MonoBehaviour
 {
     [SerializeField] itemSO item;
 
-    void Start()
+    void Update()
     {
-        GetComponent<Button>().onClick.AddListener(OnClick);
-    }
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            if (InventoryGridUI.Instance == null) return;
 
-    void OnClick()
-    {
-        if (InventoryGridUI.Instance == null) return;
-
-        if (!InventoryGridUI.Instance.TryAddItem(item))
-            Debug.Log($"Inventory full — could not place {item.name}");
+            if (!InventoryGridUI.Instance.TryAddItem(item))
+                Debug.Log($"Inventory full — could not place {item.name}");
+        }
     }
 }
