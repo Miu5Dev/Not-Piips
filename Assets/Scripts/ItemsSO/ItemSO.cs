@@ -1,0 +1,19 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+[CreateAssetMenu(
+    fileName = "New Item",
+    menuName = "Objects/Item",
+    order = 0)]
+public class itemSO : ScriptableObject
+{
+    [Header("Type")]
+    ItemType itemType;
+    
+    [Header("Stats")]
+    public float weight;
+    
+    [Header("InvSystem")] 
+    public Vector2 size;
+    public Image image;
+}
