@@ -130,16 +130,23 @@ public class EventBusListener : MonoBehaviour
     // =========================================================
     private static Dictionary<string, Type> _typeCache;
 
+    public static void InvalidateTypeCache() => _typeCache = null;
+
+    private static void RebuildTypeCache()
+    {
+        _typeCache = new Dictionary<string, Type>();
+        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            try { foreach (var t in asm.GetTypes()) if (!_typeCache.ContainsKey(t.Name)) _typeCache[t.Name] = t; }
+            catch { }
+    }
+
     public static Type ResolveType(string typeName)
     {
-        if (_typeCache == null)
-        {
-            _typeCache = new Dictionary<string, Type>();
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
-                try { foreach (var t in asm.GetTypes()) if (!_typeCache.ContainsKey(t.Name)) _typeCache[t.Name] = t; }
-                catch { }
-        }
-        return _typeCache.TryGetValue(typeName, out var type) ? type : null;
+        if (_typeCache == null) RebuildTypeCache();
+        if (_typeCache.TryGetValue(typeName, out var type)) return type;
+        // Tipo no encontrado — posible nuevo assembly cargado; reconstruir y reintentar
+        RebuildTypeCache();
+        return _typeCache.TryGetValue(typeName, out type) ? type : null;
     }
 
     public static MemberInfo GetBoolMember(Type t)
@@ -388,7 +395,7 @@ public class BindingCondition
 // SMART BINDING
 // =========================================================
 [Serializable]
-public enum ParamSourceMode { EventField, FixedValue, ComponentField, WholeEvent }
+public enum ParamSourceMode { EventField, FixedValue, ComponentField, WholeEvent, Toggle }
 
 [Serializable]
 public class ParamSource
@@ -456,6 +463,27 @@ public class SmartBinding
                 catch { Debug.LogWarning($"[SmartBinding] Could not parse '{ps.fixedValue}' as {pType.Name}"); return (null, null); }
                 var capParsed = parsed;
                 resolvers[i] = _ => capParsed;
+            }
+            else if (ps.mode == ParamSourceMode.Toggle)
+            {
+                // Lee el valor bool actual del member y lo invierte en cada llamada
+                if (pType != typeof(bool))
+                {
+                    Debug.LogWarning($"[SmartBinding] Toggle solo funciona con parámetros bool, pero el parámetro es {pType.Name}");
+                    return (null, null);
+                }
+                var capToggleTarget = targetObject;
+                var toggleMember = (MemberInfo)targetType.GetField(ps.componentMember, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+                                   ?? targetType.GetProperty(ps.componentMember, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+                if (toggleMember == null)
+                {
+                    toggleMember = (MemberInfo)typeof(GameObject).GetField(ps.componentMember, BindingFlags.Public | BindingFlags.Instance)
+                                   ?? typeof(GameObject).GetProperty(ps.componentMember, BindingFlags.Public | BindingFlags.Instance);
+                    if (toggleMember != null && capToggleTarget is Component c4) capToggleTarget = c4.gameObject;
+                }
+                if (toggleMember == null) { Debug.LogWarning($"[SmartBinding] Toggle: member '{ps.componentMember}' not found"); return (null, null); }
+                var capTM = toggleMember; var capTT = capToggleTarget;
+                resolvers[i] = _ => !(bool)(capTM is FieldInfo tfi ? tfi.GetValue(capTT) : ((PropertyInfo)capTM).GetValue(capTT));
             }
             else // ComponentField
             {
@@ -760,10 +788,8 @@ public class EventBusListenerEditor : Editor
                 {
                     var allComps = currentGO.GetComponents<Component>();
 
-                    // ¿El target actual es el propio GameObject?
                     bool goIsSelected = targetProp.objectReferenceValue is GameObject;
 
-                    // Labels: "── GameObject ──" primero, luego componentes
                     var seen = new Dictionary<string, int>();
                     string[] compLabels = new[] { "── GameObject ──" }
                         .Concat(allComps.Select(c => {
@@ -784,7 +810,6 @@ public class EventBusListenerEditor : Editor
                     int newIdx = EditorGUILayout.Popup(curIdx, compLabels);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        // Índice 0 → apuntar al GameObject mismo
                         targetProp.objectReferenceValue = newIdx == 0
                             ? (UnityEngine.Object)currentGO
                             : allComps[newIdx - 1];
@@ -928,6 +953,53 @@ public class EventBusListenerEditor : Editor
                             else if (srcMode == ParamSourceMode.FixedValue)
                             {
                                 fixedProp.stringValue = DrawTypedField("Value", fixedProp.stringValue, pType);
+                            }
+                            else if (srcMode == ParamSourceMode.Toggle)
+                            {
+                                // Solo tiene sentido para parámetros bool
+                                if (pType != typeof(bool))
+                                {
+                                    EditorGUILayout.HelpBox("Toggle solo funciona con parámetros bool.", MessageType.Warning);
+                                }
+                                else
+                                {
+                                    var tObj3 = bp.FindPropertyRelative("targetObject").objectReferenceValue;
+                                    if (tObj3 == null)
+                                    {
+                                        EditorGUILayout.HelpBox("Assign component first.", MessageType.Warning);
+                                    }
+                                    else
+                                    {
+                                        // Recopilar todos los miembros bool del componente + GO
+                                        var boolMems = GetComponentMembers(tObj3, typeof(bool))
+                                            .Concat(GetGameObjectMembers()
+                                                .Where(m => { Type mt = m is FieldInfo fb ? fb.FieldType : ((PropertyInfo)m).PropertyType; return mt == typeof(bool); }))
+                                            .ToArray();
+                                        if (boolMems.Length == 0)
+                                        {
+                                            EditorGUILayout.HelpBox("No se encontraron miembros bool.", MessageType.Warning);
+                                        }
+                                        else
+                                        {
+                                            string[] tN = boolMems.Select(m => m.Name).ToArray();
+                                            string[] tL = boolMems.Select(m => {
+                                                string owner = m.DeclaringType == typeof(GameObject) ? "GO" : tObj3.GetType().Name;
+                                                return $"!{owner}.{m.Name}";
+                                            }).ToArray();
+                                            int cur3 = Mathf.Max(0, Array.IndexOf(tN, compProp.stringValue));
+                                            using (new EditorGUILayout.HorizontalScope())
+                                            {
+                                                GUI.color = new Color(1f, 0.85f, 0.5f);
+                                                EditorGUILayout.LabelField("Toggle", GUILayout.Width(80));
+                                                GUI.color = Color.white;
+                                                compProp.stringValue = tN[EditorGUILayout.Popup(cur3, tL)];
+                                            }
+                                            GUI.color = new Color(1f, 0.9f, 0.5f);
+                                            EditorGUILayout.LabelField($"  pasa: !{tObj3.GetType().Name}.{compProp.stringValue}", EditorStyles.miniLabel);
+                                            GUI.color = Color.white;
+                                        }
+                                    }
+                                }
                             }
                             else // ComponentField
                             {
@@ -1266,7 +1338,7 @@ public class EventBusListenerEditor : Editor
                 return ps.All(p =>
                     (evtType != null && p.ParameterType.IsAssignableFrom(evtType)) ||  // whole event param
                     eventFields.Any(f => IsCompatible(f.FieldType, p.ParameterType)) || // field param
-                    TypeHelper.IsSupported(p.ParameterType));                            // fixed-value fallback
+                    TypeHelper.IsSupported(p.ParameterType));                            // fixed-value / toggle fallback
             });
 
         // Setters de propiedades compatibles con un event field
@@ -1313,7 +1385,6 @@ public class EventBusListenerEditor : Editor
 
     private static MemberInfo[] GetComponentMembers(UnityEngine.Object targetObj, Type filterType)
     {
-        // Si el target es el propio GameObject, exponer sus propiedades clave
         if (targetObj is GameObject)
             return GetGameObjectMembers()
                 .Where(m => {
