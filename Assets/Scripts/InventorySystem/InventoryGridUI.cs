@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,11 +21,9 @@ public class InventoryGridUI : MonoBehaviour
     private readonly List<InventoryCell>    _cells     = new();
     private readonly List<InventoryItemUI>  _itemViews = new();
 
-    void Awake() => Instance = this;
-
-    IEnumerator Start()
+    void Awake()
     {
-        yield return null;
+        Instance = this;
         BuildGrid();
     }
 
