@@ -24,13 +24,11 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         _cellSize    = cellSize;
         _cellSpacing = cellSpacing;
 
-        // Root background — transparent fill, raycast target for clicks
         _bg = GetComponent<Image>();
         _bg.sprite        = null;
         _bg.raycastTarget = true;
         _bg.color         = BgEmpty;
 
-        // Icon child — separate so it can rotate without affecting brackets/label
         var iconGo = new GameObject("Icon", typeof(RectTransform), typeof(Image));
         iconGo.transform.SetParent(transform, false);
         _iconRt = iconGo.GetComponent<RectTransform>();
@@ -51,8 +49,6 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
 
         SpawnLabel(item.name, cellSize, thick);
     }
-
-    // ── Positioning ───────────────────────────────────────────────────────────
 
     public void Reposition(Vector2Int origin, bool rotated)
     {
@@ -79,7 +75,6 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         var panelRt    = InventoryGridUI.Instance.PanelRt;
         var panelLocal = InventoryGridUI.Instance.ScreenToPanel(screenPos);
 
-        // Make sure size reflects current rotation while floating off-grid
         int w = Rotated ? Item.size.y : Item.size.x;
         int h = Rotated ? Item.size.x : Item.size.y;
         var rt = GetComponent<RectTransform>();
@@ -106,8 +101,6 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         _iconRt.localRotation = Rotated ? Quaternion.Euler(0f, 0f, 90f) : Quaternion.identity;
     }
 
-    // ── Wildcard ──────────────────────────────────────────────────────────────
-
     public void SetWildcardMode(RectTransform wildcardSlot)
     {
         InWildcard = true;
@@ -121,7 +114,6 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta        = Vector2.zero;
 
-        // Icon shrinks to fit the small slot, no rotation
         _iconRt.sizeDelta     = Vector2.zero;
         _iconRt.anchorMin     = new Vector2(0.05f, 0.05f);
         _iconRt.anchorMax     = new Vector2(0.95f, 0.95f);
@@ -140,30 +132,21 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         rt.anchorMax = new Vector2(0f, 1f);
         rt.pivot     = new Vector2(0f, 1f);
 
-        // Icon back to natural fixed size + rotation
         _iconRt.anchorMin = _iconRt.anchorMax = _iconRt.pivot = new Vector2(0.5f, 0.5f);
         _iconRt.anchoredPosition = Vector2.zero;
         UpdateIconForRotation();
     }
 
-    // ── Click handler ─────────────────────────────────────────────────────────
-
     public void OnPointerDown(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
         if (InventoryDragHandler.Instance == null || InventoryDragHandler.Instance.IsDragging) return;
-
-        // While wildcard slot is occupied, only the wildcard item itself can be picked up
-       /* if (!InWildcard && InventoryGridUI.Instance != null && !InventoryGridUI.Instance.WildcardEmpty)
-        {
-            Debug.Log("[Inventory] Cannot pick up — clear the wildcard slot first.");
-            return;
-        } */
+    
+        // Ignorar el clic del ratón si la navegación por teclado/mando está activa
+        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
 
         InventoryDragHandler.Instance.BeginDragExisting(this);
     }
-
-    // ── Visual children ───────────────────────────────────────────────────────
 
     void SpawnCorner(Vector2 corner, float arm, float thick)
     {
