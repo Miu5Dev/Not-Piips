@@ -12,15 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
   m_Name: Pistol
   m_EditorClassIdentifier: 
-  itemType: 0
   weight: 0
   size: {x: 0, y: 0}
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
   weaponType: 0
   shotType: 0
   ammo: {fileID: 0}
   damage: 0
-  currentBullets: 0
+  maxCartridges: 0
   fireRate: 8
   pellets: 1
   spreadAngle: 0
