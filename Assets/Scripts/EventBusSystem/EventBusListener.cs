@@ -168,12 +168,38 @@ public class EventBusListener : MonoBehaviour
     private Delegate _subscribedDelegate;
     private MethodInfo _unsubscribeMethod;
 
+    // --- Bug fix: synthetic release on disable ---
+    private bool _wasPressed;
+    private MemberInfo _boolMemberRef;
+    private Type _subscribedEventType;
+    private Action<object> _innerCallback;
+
     private void OnEnable()
     {
         Unsubscribe();
         Subscribe(selectedEventTypeName);
     }
-    private void OnDisable() => Unsubscribe();
+    private void OnDisable()
+    {
+        // Si el GameObject se desactiva mientras pressed=true, emitir release sintético
+        // para que el juego no quede creyendo que el botón sigue presionado.
+        if (_wasPressed && _boolMemberRef != null && !callOnBothStates && _innerCallback != null)
+        {
+            try
+            {
+                var syntheticEvt = System.Activator.CreateInstance(_subscribedEventType);
+                if (_boolMemberRef is FieldInfo sfi) sfi.SetValue(syntheticEvt, false);
+                else if (_boolMemberRef is PropertyInfo spi) spi.SetValue(syntheticEvt, false);
+                _innerCallback.Invoke(syntheticEvt);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[EventBusListener] Could not send synthetic release: {ex.Message}");
+            }
+        }
+        Unsubscribe();
+        _wasPressed = false;
+    }
 
     private void Subscribe(string typeName)
     {
@@ -183,6 +209,10 @@ public class EventBusListener : MonoBehaviour
 
         MemberInfo boolMember = GetBoolMember(eventType);
         bool isButtonEvent = boolMember != null;
+
+        // Guardar para el release sintético en OnDisable
+        _boolMemberRef = boolMember;
+        _subscribedEventType = eventType;
 
         var splitBindings = smartBindings
             .Where(b => b.IsConfigured())
@@ -225,9 +255,12 @@ public class EventBusListener : MonoBehaviour
             if (!isButtonEvent) { onRaised?.Invoke(); return; }
             bool pressed = ReadBool(boolMember, evtObj);
             if (callOnBothStates) { onRaised?.Invoke(); return; }
+            _wasPressed = pressed; // Trackear para release sintético en OnDisable
             if (pressed) onRaised?.Invoke();
             else onReleased?.Invoke();
         };
+
+        _innerCallback = callback; // Guardar referencia al callback para release sintético
 
         var wrapper = typeof(EventBusListener)
             .GetMethod(nameof(CreateTypedCallback), BindingFlags.NonPublic | BindingFlags.Static)
@@ -253,6 +286,7 @@ public class EventBusListener : MonoBehaviour
         _unsubscribeMethod.Invoke(null, new object[] { _subscribedDelegate });
         _subscribedDelegate = null;
         _unsubscribeMethod = null;
+        _innerCallback = null;
     }
 
 #if UNITY_EDITOR

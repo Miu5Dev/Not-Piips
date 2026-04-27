@@ -56,8 +56,6 @@ public class InventoryGridUI : MonoBehaviour
         ApplySize();
     }
 
-    // ── Build ─────────────────────────────────────────────────────────────────
-
     void BuildGrid()
     {
         _logicGrid = new InventoryGrid(columns, rows);
@@ -122,7 +120,6 @@ public class InventoryGridUI : MonoBehaviour
             "DEL");
     }
 
-    // Helper for slots that sit to the right of the panel
     RectTransform BuildSidecarSlot(string name, Vector2 anchoredPos, Color color, string label)
     {
         var go = new GameObject(name, typeof(RectTransform), typeof(Image));
@@ -164,9 +161,6 @@ public class InventoryGridUI : MonoBehaviour
         return RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam);
     }
 
-    // ── Public API ────────────────────────────────────────────────────────────
-
-    // Auto-find a slot and place immediately. Falls back to wildcard slot if grid is full.
     public bool TryAddItem(itemSO item)
     {
         if (_logicGrid == null) return false;
@@ -179,7 +173,6 @@ public class InventoryGridUI : MonoBehaviour
             return true;
         }
 
-        // Grid full — try wildcard
         if (_wildcardItem == null)
         {
             Debug.Log($"[Inventory] Inventory is full — placing {item.name} in wildcard slot.");
@@ -204,19 +197,16 @@ public class InventoryGridUI : MonoBehaviour
         if (_wildcardItem == view) _wildcardItem = null;
     }
 
-    // Create a floating visual for dragging — does NOT mark cells
     public InventoryItemUI CreateFloatingVisual(itemSO item, bool rotated)
     {
         return CreateItemVisual(item, rotated);
     }
 
-    // Check if an item fits at origin without modifying state
     public bool IsValidPlacement(Vector2Int itemSize, Vector2Int origin, bool rotated)
     {
         return _logicGrid != null && _logicGrid.CanFit(itemSize, origin, rotated);
     }
 
-    // Snap an existing floating visual onto the grid
     public void PlaceItem(InventoryItemUI view, Vector2Int origin, bool rotated)
     {
         _logicGrid.ForcePlace(view.Item.size, origin, rotated);
@@ -224,21 +214,18 @@ public class InventoryGridUI : MonoBehaviour
         _itemViews.Add(view);
     }
 
-    // Remove from grid but keep visual alive (for dragging)
     public void FreeItem(InventoryItemUI view)
     {
         _logicGrid.Remove(view.Origin, view.Item.size, view.Rotated);
         _itemViews.Remove(view);
     }
 
-    // Remove from grid and destroy
     public void RemoveItem(InventoryItemUI view)
     {
         FreeItem(view);
         Destroy(view.gameObject);
     }
 
-    // Grid cell under a screen-space point, null if outside grid
     public Vector2Int? GetCellFromScreen(Vector2 screenPos)
     {
         var cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
@@ -256,7 +243,6 @@ public class InventoryGridUI : MonoBehaviour
         return new Vector2Int(col, row);
     }
 
-    // Screen point → InventoryPanel local space (for off-grid mouse tracking)
     public Vector2 ScreenToPanel(Vector2 screenPos)
     {
         var cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
@@ -264,8 +250,6 @@ public class InventoryGridUI : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(PanelRt, screenPos, cam, out var local);
         return local;
     }
-
-    // ── Internal helpers ──────────────────────────────────────────────────────
 
     InventoryItemUI CreateItemVisual(itemSO item, bool rotated)
     {
@@ -283,7 +267,26 @@ public class InventoryGridUI : MonoBehaviour
         return view;
     }
 
-    // ── Rebuild ───────────────────────────────────────────────────────────────
+    // ── Nuevos métodos para el navegador ─────────────────────────────────────
+
+    public InventoryItemUI GetItemAtCell(Vector2Int cell)
+    {
+        foreach (var view in _itemViews)
+        {
+            if (view.InWildcard) continue;
+            int w = view.Rotated ? view.Item.size.y : view.Item.size.x;
+            int h = view.Rotated ? view.Item.size.x : view.Item.size.y;
+            if (cell.x >= view.Origin.x && cell.x < view.Origin.x + w &&
+                cell.y >= view.Origin.y && cell.y < view.Origin.y + h)
+                return view;
+        }
+        return null;
+    }
+
+    public InventoryItemUI GetWildcardItem()
+    {
+        return _wildcardItem;
+    }
 
     public void Rebuild(int newColumns, int newRows)
     {
