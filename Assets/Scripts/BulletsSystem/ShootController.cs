@@ -4,28 +4,41 @@ using Random = UnityEngine.Random;
 
 public class ShootController : MonoBehaviour
 {
-    [SerializeField] private WeaponSO  currentWeapon;
+    [SerializeField] private WeaponSO currentWeapon;
     [SerializeField] private Transform spawnpoint;
-    [SerializeField] private float     hipFireDuration = 0.2f;
-    [SerializeField] private float     shotSpawnDelay  = 0.06f;
+    [SerializeField] private float hipFireDuration = 0.2f;
+    [SerializeField] private float shotSpawnDelay  = 0.06f;
 
     [SerializeField] private AimTargetController aimTarget;
 
-    private float hipFireTimer;
-    private bool  isHipFiring;
-    private float lastShotTime;
-    private bool  isFireHeld;
-    private bool  canSemiAutoShootAgain = true;
+    // ── Runtime state (per-instance, never stored in the SO) ─────────────────
+    [SerializeField] private int   _currentMagazine;
+    private bool  _isReloading;
+
+    private float _hipFireTimer;
+    private bool  _isHipFiring;
+    private float _lastShotTime;
+    private bool  _isFireHeld;
+    private bool  _canSemiAutoShootAgain = true;
 
     private WaitForSeconds             _waitForDelay;
     private OnHipFireStateChangedEvent _hipFireOn;
     private OnHipFireStateChangedEvent _hipFireOff;
 
+    // ── Public accessors for HUD / UI ─────────────────────────────────────────
+    public int  CurrentMagazine => _currentMagazine;
+    public int  MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
+    public bool IsReloading     => _isReloading;
+    public bool IsMagazineEmpty => _currentMagazine <= 0;
+
     private void Awake()
     {
         _waitForDelay = new WaitForSeconds(shotSpawnDelay);
-        _hipFireOn    = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
-        _hipFireOff   = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+        _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
+        _hipFireOff = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+
+        if (currentWeapon != null)
+            _currentMagazine = currentWeapon.maxMagazineSize;
     }
 
     private void Update()
@@ -33,22 +46,31 @@ public class ShootController : MonoBehaviour
         HandleHipFireTimer();
 
         if (currentWeapon == null || currentWeapon.ammo == null) return;
-        if (currentWeapon.shotType == ShotType.Automatic && isFireHeld)
+        if (currentWeapon.shotType == ShotType.Automatic && _isFireHeld)
             TryShoot();
     }
 
+    // ── Equip ─────────────────────────────────────────────────────────────────
+    public void EquipWeapon(WeaponSO weapon)
+    {
+        currentWeapon    = weapon;
+        _currentMagazine = weapon != null ? weapon.maxMagazineSize : 0;
+        _isReloading     = false;
+    }
+
+    // ── Fire input ────────────────────────────────────────────────────────────
     public void OnFirePressed()
     {
-        isFireHeld = true;
+        _isFireHeld = true;
 
         switch (currentWeapon != null ? currentWeapon.shotType : ShotType.SemiAutomatic)
         {
             case ShotType.SemiAutomatic:
             case ShotType.Manual:
-                if (canSemiAutoShootAgain)
+                if (_canSemiAutoShootAgain)
                 {
                     TryShoot();
-                    canSemiAutoShootAgain = false;
+                    _canSemiAutoShootAgain = false;
                 }
                 break;
 
@@ -60,16 +82,20 @@ public class ShootController : MonoBehaviour
 
     public void OnFireReleased()
     {
-        isFireHeld            = false;
-        canSemiAutoShootAgain = true;
+        _isFireHeld            = false;
+        _canSemiAutoShootAgain = true;
     }
 
+    // ── Core shoot logic ──────────────────────────────────────────────────────
     private void TryShoot()
     {
         if (currentWeapon == null || currentWeapon.ammo == null) return;
-        if (Time.time < lastShotTime + (1f / currentWeapon.fireRate)) return;
+        if (_isReloading) return;
+        if (_currentMagazine <= 0) return;
+        if (Time.time < _lastShotTime + (1f / currentWeapon.fireRate)) return;
 
-        lastShotTime = Time.time;
+        _currentMagazine--;
+        _lastShotTime = Time.time;
         StartHipFire();
         StartCoroutine(FireAfterDelay());
     }
@@ -101,7 +127,6 @@ public class ShootController : MonoBehaviour
 
     private void SpawnProjectile(Quaternion rotation)
     {
-        // GetOrCreate ensures a pool always exists — no manual setup needed
         Shot shot = BulletPool.GetOrCreate().Get(
             currentWeapon.ammo.ammoPrefab,
             spawnpoint.position,
@@ -116,6 +141,33 @@ public class ShootController : MonoBehaviour
         );
     }
 
+    // ── Reload ────────────────────────────────────────────────────────────────
+    public void Reload()
+    {
+        if (_isReloading) return;
+        if (currentWeapon == null) return;
+        if (_currentMagazine >= currentWeapon.maxMagazineSize) return;
+
+        StartCoroutine(ReloadCoroutine());
+    }
+
+    private IEnumerator ReloadCoroutine()
+    {
+        _isReloading = true;
+
+        yield return new WaitForSeconds(currentWeapon.reloadTime);
+
+        // TODO: Replace with inventory logic when ready:
+        // int needed = currentWeapon.maxMagazineSize - _currentMagazine;
+        // int toLoad = Mathf.Min(needed, InventorySystem.GetAmmo(currentWeapon.ammo));
+        // _currentMagazine += toLoad;
+        // InventorySystem.ConsumeAmmo(currentWeapon.ammo, toLoad);
+        _currentMagazine = currentWeapon.maxMagazineSize;
+
+        _isReloading = false;
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
     {
         Vector2 spread = Random.insideUnitCircle * spreadAngle;
@@ -124,22 +176,22 @@ public class ShootController : MonoBehaviour
 
     private void StartHipFire()
     {
-        hipFireTimer = hipFireDuration;
-        if (!isHipFiring)
+        _hipFireTimer = hipFireDuration;
+        if (!_isHipFiring)
         {
-            isHipFiring = true;
+            _isHipFiring = true;
             EventBus.Raise(_hipFireOn);
         }
     }
 
     private void HandleHipFireTimer()
     {
-        if (!isHipFiring) return;
+        if (!_isHipFiring) return;
 
-        hipFireTimer -= Time.deltaTime;
-        if (hipFireTimer <= 0f)
+        _hipFireTimer -= Time.deltaTime;
+        if (_hipFireTimer <= 0f)
         {
-            isHipFiring = false;
+            _isHipFiring = false;
             EventBus.Raise(_hipFireOff);
         }
     }

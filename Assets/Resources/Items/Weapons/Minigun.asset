@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   weight: 5
   size: {x: 0, y: 0}
-  image: {fileID: 0}
+  icon: {fileID: 0}
   weaponType: 4
   shotType: 0
   ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
   damage: 5
-  currentBullets: 0
+  maxMagazineSize: 100
   fireRate: 12
   pellets: 1
   spreadAngle: 1.5
+  reloadTime: 1.5
   weaponPrefab: {fileID: 0}
