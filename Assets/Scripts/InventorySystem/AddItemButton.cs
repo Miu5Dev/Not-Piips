@@ -7,11 +7,13 @@ public class AddItemButton : MonoBehaviour
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.P))
-        {
-            if (InventoryGridUI.Instance == null) return;
+            AddItem();
+    }
 
-            if (!InventoryGridUI.Instance.TryAddItem(item))
-                Debug.Log($"Inventory full — could not place {item.name}");
-        }
+    // Public so other scripts can call this directly to add the item
+    public void AddItem()
+    {
+        if (InventoryGridUI.Instance == null) return;
+        InventoryGridUI.Instance.TryAddItem(item);
     }
 }
