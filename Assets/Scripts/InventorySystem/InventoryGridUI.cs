@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,21 +17,36 @@ public class InventoryGridUI : MonoBehaviour
     public Color borderColor = new Color(0.4f, 0.4f, 0.4f, 1f);
     [Range(0f, 20f)] public float cellSpacing = 2f;
 
-    private GridLayoutGroup        _grid;
-    private InventoryGrid          _logicGrid;
-    private readonly List<InventoryCell>    _cells     = new();
-    private readonly List<InventoryItemUI>  _itemViews = new();
+    public int Columns => columns;
+    public int Rows    => rows;
+    public RectTransform PanelRt => transform.parent as RectTransform ?? GetComponent<RectTransform>();
+
+    Canvas _canvas;
+    GridLayoutGroup _grid;
+    InventoryGrid   _logicGrid;
+    readonly List<InventoryCell>   _cells     = new();
+    readonly List<InventoryItemUI> _itemViews = new();
+
+    RectTransform   _wildcardSlot;
+    InventoryItemUI _wildcardItem;
+    RectTransform   _discardSlot;
+
+    public RectTransform WildcardSlot   => _wildcardSlot;
+    public RectTransform DiscardSlot    => _discardSlot;
+    public bool          WildcardEmpty  => _wildcardItem == null;
 
     void Awake()
     {
         Instance = this;
+        _canvas  = GetComponentInParent<Canvas>();
         BuildGrid();
+        BuildWildcardSlot();
+        BuildDiscardSlot();
     }
 
     void OnEnable()
     {
-        if (_cells.Count > 0)
-            ApplySize();
+        if (_cells.Count > 0) ApplySize();
     }
 
     void OnValidate()
@@ -39,6 +55,8 @@ public class InventoryGridUI : MonoBehaviour
         _grid.spacing = new Vector2(cellSpacing, cellSpacing);
         ApplySize();
     }
+
+    // ── Build ─────────────────────────────────────────────────────────────────
 
     void BuildGrid()
     {
@@ -67,7 +85,6 @@ public class InventoryGridUI : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta        = new Vector2(totalW, totalH);
 
-        // Keep parent panel the same size so its background image matches
         if (transform.parent is RectTransform parentRt)
             parentRt.sizeDelta = new Vector2(totalW, totalH);
 
@@ -83,82 +100,197 @@ public class InventoryGridUI : MonoBehaviour
             {
                 var go = new GameObject($"Cell_{col}_{row}", typeof(RectTransform), typeof(Image), typeof(InventoryCell));
                 go.transform.SetParent(transform, false);
-
-                var cell = go.GetComponent<InventoryCell>();
-                cell.Init(col, row, cellColor, borderColor);
-                _cells.Add(cell);
+                go.GetComponent<InventoryCell>().Init(col, row, cellColor, borderColor);
+                _cells.Add(go.GetComponent<InventoryCell>());
             }
         }
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
+    void BuildWildcardSlot()
+    {
+        _wildcardSlot = BuildSidecarSlot("WildcardSlot",
+            new Vector2(20f,  cellSize * 0.5f + 5f),
+            new Color(0.2f, 0.25f, 0.4f, 0.85f),
+            "*");
+    }
 
+    void BuildDiscardSlot()
+    {
+        _discardSlot = BuildSidecarSlot("DiscardSlot",
+            new Vector2(20f, -cellSize * 0.5f - 5f),
+            new Color(0.5f, 0.15f, 0.15f, 0.85f),
+            "DEL");
+    }
+
+    // Helper for slots that sit to the right of the panel
+    RectTransform BuildSidecarSlot(string name, Vector2 anchoredPos, Color color, string label)
+    {
+        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+        go.transform.SetParent(PanelRt, false);
+        go.transform.SetAsFirstSibling();
+
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin        = new Vector2(1f, 0.5f);
+        rt.anchorMax        = new Vector2(1f, 0.5f);
+        rt.pivot            = new Vector2(0f, 0.5f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta        = new Vector2(cellSize, cellSize);
+
+        go.GetComponent<Image>().color = color;
+
+        var labelGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelGo.transform.SetParent(rt, false);
+        var labelRt = labelGo.GetComponent<RectTransform>();
+        labelRt.anchorMin = Vector2.zero;
+        labelRt.anchorMax = Vector2.one;
+        labelRt.offsetMin = labelRt.offsetMax = Vector2.zero;
+
+        var tmp = labelGo.GetComponent<TextMeshProUGUI>();
+        tmp.text          = label;
+        tmp.fontSize      = cellSize * 0.35f;
+        tmp.fontStyle     = FontStyles.Bold;
+        tmp.alignment     = TextAlignmentOptions.Center;
+        tmp.color         = new Color(1f, 1f, 1f, 0.7f);
+        tmp.raycastTarget = false;
+
+        return rt;
+    }
+
+    public bool IsMouseOver(RectTransform rt, Vector2 screenPos)
+    {
+        if (rt == null) return false;
+        var cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? _canvas.worldCamera : null;
+        return RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam);
+    }
+
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    // Auto-find a slot and place immediately. Falls back to wildcard slot if grid is full.
     public bool TryAddItem(itemSO item)
     {
         if (_logicGrid == null) return false;
-        if (!_logicGrid.TryAdd(item.size, out var origin, out var rotated)) return false;
 
-        SpawnItemVisual(item, origin, rotated);
-        return true;
+        if (_logicGrid.TryAdd(item.size, out var origin, out var rotated))
+        {
+            var view = CreateItemVisual(item, rotated);
+            view.Reposition(origin, rotated);
+            _itemViews.Add(view);
+            return true;
+        }
+
+        // Grid full — try wildcard
+        if (_wildcardItem == null)
+        {
+            Debug.Log($"[Inventory] Inventory is full — placing {item.name} in wildcard slot.");
+            var view = CreateItemVisual(item, false);
+            PlaceInWildcard(view);
+            return true;
+        }
+
+        Debug.Log($"[Inventory] Cannot pick up {item.name} — wildcard slot is occupied.");
+        return false;
     }
 
-    public void RemoveItem(InventoryItemUI view)
+    public void PlaceInWildcard(InventoryItemUI view)
     {
-        _logicGrid.Remove(view.Origin, view.Item.size, view.Rotated);
-        _itemViews.Remove(view);
-        Destroy(view.gameObject);
+        if (_wildcardItem != null && _wildcardItem != view) return;
+        _wildcardItem = view;
+        view.SetWildcardMode(_wildcardSlot);
     }
 
-    // ── Visuals ──────────────────────────────────────────────────────────────
-
-    void SpawnItemVisual(itemSO item, Vector2Int origin, bool rotated)
+    public void FreeFromWildcard(InventoryItemUI view)
     {
-        int w = rotated ? item.size.y : item.size.x;
-        int h = rotated ? item.size.x : item.size.y;
+        if (_wildcardItem == view) _wildcardItem = null;
+    }
 
-        float pixW = w * cellSize + (w - 1) * cellSpacing;
-        float pixH = h * cellSize + (h - 1) * cellSpacing;
+    // Create a floating visual for dragging — does NOT mark cells
+    public InventoryItemUI CreateFloatingVisual(itemSO item, bool rotated)
+    {
+        return CreateItemVisual(item, rotated);
+    }
 
-        // Force layout so cell world corners are accurate
-        Canvas.ForceUpdateCanvases();
+    // Check if an item fits at origin without modifying state
+    public bool IsValidPlacement(Vector2Int itemSize, Vector2Int origin, bool rotated)
+    {
+        return _logicGrid != null && _logicGrid.CanFit(itemSize, origin, rotated);
+    }
 
-        // Anchor the item to the top-left world corner of the origin cell
-        var originCellRt = _cells[origin.y * columns + origin.x].GetComponent<RectTransform>();
-        Vector3[] corners = new Vector3[4];
-        originCellRt.GetWorldCorners(corners);
-        // corners: [0]=bottom-left [1]=top-left [2]=top-right [3]=bottom-right
-
-        var go = new GameObject(item.name, typeof(RectTransform), typeof(Image), typeof(InventoryItemUI));
-        go.transform.SetParent(transform, false);
-        go.transform.SetAsLastSibling();
-
-        var rt      = go.GetComponent<RectTransform>();
-        var gridRt  = GetComponent<RectTransform>();
-
-        rt.anchorMin = new Vector2(0f, 1f);
-        rt.anchorMax = new Vector2(0f, 1f);
-        rt.pivot     = new Vector2(0f, 1f);
-        rt.sizeDelta = new Vector2(pixW, pixH);
-
-        // Convert world top-left of origin cell → Grid local space → anchoredPosition
-        Vector2 localTopLeft  = gridRt.InverseTransformPoint(corners[1]);
-        Vector2 anchorInLocal = new Vector2(gridRt.rect.xMin, gridRt.rect.yMax);
-        rt.anchoredPosition   = localTopLeft - anchorInLocal;
-
-        var view = go.GetComponent<InventoryItemUI>();
-        view.Init(item, origin, rotated);
+    // Snap an existing floating visual onto the grid
+    public void PlaceItem(InventoryItemUI view, Vector2Int origin, bool rotated)
+    {
+        _logicGrid.ForcePlace(view.Item.size, origin, rotated);
+        view.Reposition(origin, rotated);
         _itemViews.Add(view);
     }
 
-    // ── Rebuild ──────────────────────────────────────────────────────────────
+    // Remove from grid but keep visual alive (for dragging)
+    public void FreeItem(InventoryItemUI view)
+    {
+        _logicGrid.Remove(view.Origin, view.Item.size, view.Rotated);
+        _itemViews.Remove(view);
+    }
+
+    // Remove from grid and destroy
+    public void RemoveItem(InventoryItemUI view)
+    {
+        FreeItem(view);
+        Destroy(view.gameObject);
+    }
+
+    // Grid cell under a screen-space point, null if outside grid
+    public Vector2Int? GetCellFromScreen(Vector2 screenPos)
+    {
+        var cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? _canvas.worldCamera : null;
+
+        var rt = GetComponent<RectTransform>();
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(rt, screenPos, cam, out var local))
+            return null;
+
+        float step = cellSize + cellSpacing;
+        int col = Mathf.FloorToInt((local.x - rt.rect.xMin) / step);
+        int row = Mathf.FloorToInt((rt.rect.yMax - local.y) / step);
+
+        if (col < 0 || col >= columns || row < 0 || row >= rows) return null;
+        return new Vector2Int(col, row);
+    }
+
+    // Screen point → InventoryPanel local space (for off-grid mouse tracking)
+    public Vector2 ScreenToPanel(Vector2 screenPos)
+    {
+        var cam = _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
+            ? _canvas.worldCamera : null;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(PanelRt, screenPos, cam, out var local);
+        return local;
+    }
+
+    // ── Internal helpers ──────────────────────────────────────────────────────
+
+    InventoryItemUI CreateItemVisual(itemSO item, bool rotated)
+    {
+        var go = new GameObject(item.name, typeof(RectTransform), typeof(Image), typeof(InventoryItemUI));
+        go.transform.SetParent(PanelRt, false);
+        go.transform.SetAsLastSibling();
+
+        var rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot     = new Vector2(0f, 1f);
+
+        var view = go.GetComponent<InventoryItemUI>();
+        view.Init(item, rotated, cellSize, cellSpacing);
+        return view;
+    }
+
+    // ── Rebuild ───────────────────────────────────────────────────────────────
 
     public void Rebuild(int newColumns, int newRows)
     {
-        foreach (var cell in _cells)   Destroy(cell.gameObject);
-        foreach (var view in _itemViews) Destroy(view.gameObject);
+        foreach (var c in _cells)   Destroy(c.gameObject);
+        foreach (var v in _itemViews) Destroy(v.gameObject);
         _cells.Clear();
         _itemViews.Clear();
-
         columns = newColumns;
         rows    = newRows;
         BuildGrid();
