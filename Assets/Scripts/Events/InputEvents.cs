@@ -45,3 +45,7 @@ public class OnShootInputEvent : InputEventBase
 public class OnAimInputEvent : InputEventBase
 {
 }
+
+public class OnOpenInventoryEvent : InputEventBase
+{
+}
