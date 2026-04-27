@@ -154,11 +154,11 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         if (InventoryDragHandler.Instance == null || InventoryDragHandler.Instance.IsDragging) return;
 
         // While wildcard slot is occupied, only the wildcard item itself can be picked up
-        if (!InWildcard && InventoryGridUI.Instance != null && !InventoryGridUI.Instance.WildcardEmpty)
+       /* if (!InWildcard && InventoryGridUI.Instance != null && !InventoryGridUI.Instance.WildcardEmpty)
         {
             Debug.Log("[Inventory] Cannot pick up — clear the wildcard slot first.");
             return;
-        }
+        } */
 
         InventoryDragHandler.Instance.BeginDragExisting(this);
     }

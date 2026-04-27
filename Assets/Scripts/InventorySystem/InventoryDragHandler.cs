@@ -16,21 +16,28 @@ public class InventoryDragHandler : MonoBehaviour
     bool            _isFromWildcard;
     Vector2Int      _cancelOrigin;
     bool            _cancelRotated;
-    int             _dragStartFrame = -1;
     bool            _blinking;
+    int             _dragStartFrame = -1;
+    bool            _justPlaced;              // ← evita re‑agarrar el ítem recién soltado
+
+    Vector2         _currentMousePos;
 
     TextMeshProUGUI _popupText;
     Coroutine       _popupCo;
 
     public bool IsDragging => _held != null;
+    public bool JustPlaced => _justPlaced;    // útil si otro script necesita consultarlo
 
     void Awake()
     {
         Instance = this;
         CreatePopup();
     }
-
-    void OnDisable() { if (_held != null) Cancel(); }
+    
+    void OnDisable()
+    {
+        if (_held != null) Cancel();
+    }
 
     // ── Popup ─────────────────────────────────────────────────────────────────
 
@@ -101,7 +108,8 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void BeginDrag(itemSO item)
     {
-        if (_held != null || InventoryGridUI.Instance == null) return;
+        // Bloquea si ya hay un ítem arrastrándose, no hay grid, o se acaba de colocar uno
+        if (_held != null || InventoryGridUI.Instance == null || _justPlaced) return;
         _held           = InventoryGridUI.Instance.CreateFloatingVisual(item, false);
         _isNew          = true;
         _isFromWildcard = false;
@@ -110,7 +118,7 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void BeginDragExisting(InventoryItemUI view)
     {
-        if (_held != null || InventoryGridUI.Instance == null) return;
+        if (_held != null || InventoryGridUI.Instance == null || _justPlaced) return;
 
         if (view.InWildcard)
         {
@@ -133,76 +141,116 @@ public class InventoryDragHandler : MonoBehaviour
         _dragStartFrame = Time.frameCount;
     }
 
-    // ── Update ────────────────────────────────────────────────────────────────
+    // ── Event handlers (llamados desde otro script) ───────────────────────────
+
+    public void HandleRotate(OnRotateKeyEvent e)
+    {
+        if (!e.pressed || _held == null || InventoryGridUI.Instance == null) return;
+        _held.Reposition(_held.Origin, !_held.Rotated);
+    }
+
+    public void HandleRightClick(OnRightClickEvent e)
+    {
+        if (!e.pressed || _held == null) return;
+        Cancel();
+    }
+
+    public void HandleLeftClick(OnLeftClickEvent e)
+    {
+        if (!e.pressed || _held == null) return;
+
+        // Ignora el clic que inició el arrastre (mismo frame)
+        if (Time.frameCount == _dragStartFrame) return;
+
+        var grid = InventoryGridUI.Instance;
+        if (grid == null) return;
+
+        Vector2 mousePos = _currentMousePos;
+
+        // 1) ¿Sobre el slot de descarte?
+        if (grid.IsMouseOver(grid.DiscardSlot, mousePos))
+        {
+            Debug.Log($"[Inventory] Discarded {_held.Item.name}.");
+            Destroy(_held.gameObject);
+            _held = null;
+            return;
+        }
+
+        // 2) ¿Sobre una celda válida?
+        int w = _held.Rotated ? _held.Item.size.y : _held.Item.size.x;
+        int h = _held.Rotated ? _held.Item.size.x : _held.Item.size.y;
+        Vector2Int? rawCell = grid.GetCellFromScreen(mousePos);
+
+        if (rawCell.HasValue)
+        {
+            int col = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
+            int row = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
+            var snap = new Vector2Int(col, row);
+
+            if (grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated))
+            {
+                grid.PlaceItem(_held, snap, _held.Rotated);
+                _held = null;
+                _justPlaced = true;                // ← bloquea nuevos arrastres este frame
+            }
+            else
+            {
+                ShowPopup(invalidMsg);
+                StartCoroutine(BlinkRed(_held));
+            }
+        }
+        else
+        {
+            ShowPopup(invalidMsg);
+            StartCoroutine(BlinkRed(_held));
+        }
+    }
+
+    public void HandlePointerPosition(OnPointerPositionEvent e)
+    {
+        _currentMousePos = e.Position;
+    }
+
+    // ── Update (solo visual) ──────────────────────────────────────────────────
 
     void Update()
     {
+        // Resetea la bandera de "recién colocado" al inicio de cada frame
+        if (_justPlaced) _justPlaced = false;
+
         if (_held == null) return;
         var grid = InventoryGridUI.Instance;
         if (grid == null) return;
 
-        if (Input.GetKeyDown(KeyCode.R))
-            _held.Reposition(_held.Origin, !_held.Rotated);
+        Vector2 mousePos = _currentMousePos;
 
-        if (Input.GetMouseButtonDown(1)) { Cancel(); return; }
-
-        // Skip the click that started the drag this frame
-        bool placeClick = Input.GetMouseButtonDown(0) && Time.frameCount != _dragStartFrame;
-
-        // Discard slot has priority over grid — drop here to delete the item
-        if (grid.IsMouseOver(grid.DiscardSlot, Input.mousePosition))
+        // ¿Sobre el slot de descarte? → feedback rojo
+        if (grid.IsMouseOver(grid.DiscardSlot, mousePos))
         {
-            _held.FollowScreen(Input.mousePosition);
+            _held.FollowScreen(mousePos);
             if (!_blinking) _held.SetDragColor(new Color(1f, 0.2f, 0.2f, 0.95f));
-
-            if (placeClick)
-            {
-                Debug.Log($"[Inventory] Discarded {_held.Item.name}.");
-                Destroy(_held.gameObject);
-                _held = null;
-            }
             return;
         }
 
+        // Calcular posición snap y validez para el color
         int w = _held.Rotated ? _held.Item.size.y : _held.Item.size.x;
         int h = _held.Rotated ? _held.Item.size.x : _held.Item.size.y;
-
-        Vector2Int? rawCell = grid.GetCellFromScreen(Input.mousePosition);
+        Vector2Int? rawCell = grid.GetCellFromScreen(mousePos);
 
         if (rawCell.HasValue)
         {
-            int col  = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
-            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
+            int col = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
+            int row = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
             var snap = new Vector2Int(col, row);
 
             bool valid = grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated);
             _held.Reposition(snap, _held.Rotated);
             if (!_blinking) _held.SetDragColor(valid ? validColor : invalidColor);
-
-            if (placeClick)
-            {
-                if (valid)
-                {
-                    grid.PlaceItem(_held, snap, _held.Rotated);
-                    _held = null;
-                }
-                else
-                {
-                    ShowPopup(invalidMsg);
-                    StartCoroutine(BlinkRed(_held));
-                }
-            }
         }
         else
         {
-            _held.FollowScreen(Input.mousePosition);
+            _held.FollowScreen(mousePos);
             if (!_blinking) _held.SetDragColor(invalidColor);
-
-            if (placeClick)
-            {
-                ShowPopup(invalidMsg);
-                StartCoroutine(BlinkRed(_held));
-            }
         }
     }
 

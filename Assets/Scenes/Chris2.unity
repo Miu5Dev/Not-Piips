@@ -659,6 +659,11 @@ GameObject:
   m_Component:
   - component: {fileID: 821799310}
   - component: {fileID: 821799311}
+  - component: {fileID: 821799316}
+  - component: {fileID: 821799315}
+  - component: {fileID: 821799314}
+  - component: {fileID: 821799313}
+  - component: {fileID: 821799312}
   m_Layer: 0
   m_Name: '[InventorySystem]'
   m_TagString: Untagged
@@ -714,10 +719,10 @@ MonoBehaviour:
   - targetObject: {fileID: 1591784228}
     methodName: SetActive
     paramSources:
-    - mode: 1
+    - mode: 4
       eventFieldName: pressed
       fixedValue: false
-      componentMember: 
+      componentMember: activeSelf
     conditions:
     - enabled: 1
       fieldName: pressed
@@ -725,62 +730,14 @@ MonoBehaviour:
       source: 0
       compareValue: true
       componentFieldName: 
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 2
-      compareValue: true
-      componentFieldName: activeSelf
-    logic: 0
-  - targetObject: {fileID: 1591784228}
-    methodName: SetActive
-    paramSources:
-    - mode: 1
-      eventFieldName: pressed
-      fixedValue: true
-      componentMember: 
-    conditions:
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 0
-      compareValue: true
-      componentFieldName: 
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 2
-      compareValue: false
-      componentFieldName: activeSelf
-    logic: 1
-  - targetObject: {fileID: 1042924095}
-    methodName: SetActive
-    paramSources:
-    - mode: 1
-      eventFieldName: pressed
-      fixedValue: false
-      componentMember: 
-    conditions:
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 0
-      compareValue: true
-      componentFieldName: 
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 2
-      compareValue: true
-      componentFieldName: activeSelf
     logic: 0
   - targetObject: {fileID: 1042924095}
     methodName: SetActive
     paramSources:
-    - mode: 1
+    - mode: 4
       eventFieldName: pressed
-      fixedValue: true
-      componentMember: 
+      fixedValue: false
+      componentMember: activeSelf
     conditions:
     - enabled: 1
       fieldName: pressed
@@ -788,13 +745,148 @@ MonoBehaviour:
       source: 0
       compareValue: true
       componentFieldName: 
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 2
-      compareValue: false
-      componentFieldName: activeSelf
-    logic: 1
+    logic: 0
+--- !u!114 &821799312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821799309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnMoveInputEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings: []
+--- !u!114 &821799313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821799309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnPointerPositionEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 1121013333}
+    methodName: HandlePointerPosition
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+--- !u!114 &821799314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821799309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnLeftClickEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 1121013333}
+    methodName: HandleLeftClick
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+--- !u!114 &821799315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821799309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnRightClickEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 1121013333}
+    methodName: HandleRightClick
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+--- !u!114 &821799316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 821799309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnRotateKeyEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 1121013333}
+    methodName: HandleRotate
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -1883,7 +1975,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1386785124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2026952522
+--- !u!1 &2108328583
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1891,43 +1983,76 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2026952524}
-  - component: {fileID: 2026952523}
+  - component: {fileID: 2108328584}
+  - component: {fileID: 2108328586}
+  - component: {fileID: 2108328585}
   m_Layer: 0
-  m_Name: Add
+  m_Name: '[Debug]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2026952523
+--- !u!4 &2108328584
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2108328583}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1663995907}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2108328585
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2026952522}
+  m_GameObject: {fileID: 2108328583}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d61c18f49003d744f8c328b224eda49e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   item: {fileID: 11400000, guid: a2820eb7e7e1fb4478c67de856e55330, type: 2}
---- !u!4 &2026952524
-Transform:
+--- !u!114 &2108328586
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2026952522}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 506.85144, y: 287.52863, z: 250.14563}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_GameObject: {fileID: 2108328583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnCrouchInputEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 2108328585}
+    methodName: AddItem
+    paramSources: []
+    conditions:
+    - enabled: 1
+      fieldName: pressed
+      op: 0
+      source: 0
+      compareValue: true
+      componentFieldName: 
+    logic: 0
 --- !u!1001 &3936740943758811164
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2014,6 +2139,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8242796378219941989, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       insertIndex: -1
       addedObject: {fileID: 821799310}
+    - targetCorrespondingSourceObject: {fileID: 8242796378219941989, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2108328584}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
 --- !u!1660057539 &9223372036854775807
@@ -2026,4 +2154,3 @@ SceneRoots:
   - {fileID: 199050349}
   - {fileID: 1696527935}
   - {fileID: 105440735}
-  - {fileID: 2026952524}

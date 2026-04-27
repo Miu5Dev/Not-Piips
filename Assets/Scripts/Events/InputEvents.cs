@@ -49,3 +49,28 @@ public class OnAimInputEvent : InputEventBase
 public class OnOpenInventoryEvent : InputEventBase
 {
 }
+
+// ============================================================================
+// INVENTORY INPUT EVENTS
+// ============================================================================
+
+public class OnReloadKeyEvent : InputEventBase
+{
+}
+
+public class OnRotateKeyEvent : InputEventBase
+{
+}
+
+public class OnLeftClickEvent : InputEventBase
+{
+}
+
+public class OnRightClickEvent : InputEventBase
+{
+}
+
+public class OnPointerPositionEvent : InputEventBase
+{
+    public Vector2 Position; // en píxeles, coordenadas de pantalla
+}
