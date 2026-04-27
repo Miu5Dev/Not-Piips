@@ -766,7 +766,16 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   callOnBothStates: 0
-  smartBindings: []
+  smartBindings:
+  - targetObject: {fileID: 1121013334}
+    methodName: HandleMove
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!114 &821799313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -789,6 +798,15 @@ MonoBehaviour:
   callOnBothStates: 0
   smartBindings:
   - targetObject: {fileID: 1121013333}
+    methodName: HandlePointerPosition
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+  - targetObject: {fileID: 1121013334}
     methodName: HandlePointerPosition
     paramSources:
     - mode: 3
@@ -827,6 +845,15 @@ MonoBehaviour:
       componentMember: 
     conditions: []
     logic: 0
+  - targetObject: {fileID: 1121013334}
+    methodName: HandleLeftClick
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!114 &821799315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,6 +884,15 @@ MonoBehaviour:
       componentMember: 
     conditions: []
     logic: 0
+  - targetObject: {fileID: 1121013334}
+    methodName: HandleRightClick
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!114 &821799316
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -879,6 +915,15 @@ MonoBehaviour:
   callOnBothStates: 0
   smartBindings:
   - targetObject: {fileID: 1121013333}
+    methodName: HandleRotate
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+  - targetObject: {fileID: 1121013334}
     methodName: HandleRotate
     paramSources:
     - mode: 3
@@ -959,6 +1004,7 @@ GameObject:
   - component: {fileID: 1121013331}
   - component: {fileID: 1121013330}
   - component: {fileID: 1121013333}
+  - component: {fileID: 1121013334}
   m_Layer: 5
   m_Name: InventoryPanel
   m_TagString: Untagged
@@ -1052,6 +1098,24 @@ MonoBehaviour:
   invalidColor: {r: 1, g: 0.25, b: 0.25, a: 0.85}
   invalidMsg: You can not place it here
   popupSeconds: 1.5
+--- !u!114 &1121013334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1121013328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fee613a85684cd47887197aacf5421a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveCooldown: 0.12
+  cursorNormal: {r: 0.5, g: 0.9, b: 1, a: 0.9}
+  cursorDiscard: {r: 1, g: 0.5, b: 0.3, a: 0.9}
+  highlightScale: 0.55
+  gridUI: {fileID: 364466359}
+  dragHandler: {fileID: 1121013333}
 --- !u!1 &1285599614
 GameObject:
   m_ObjectHideFlags: 0
