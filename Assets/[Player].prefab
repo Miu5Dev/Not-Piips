@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3468381072937664653}
   - component: {fileID: 1037883504434991634}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ShootSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -48,7 +48,7 @@ MonoBehaviour:
   maxAimDistance: 500
   aimMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 63
 --- !u!1 &374534042500880949
 GameObject:
   m_ObjectHideFlags: 0
@@ -63,7 +63,7 @@ GameObject:
   - component: {fileID: 1101840330682616881}
   - component: {fileID: 421905502482132967}
   - component: {fileID: 8035707735414911129}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: InventoryPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -184,7 +184,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4244822528057547557}
   - component: {fileID: 2280791389207800262}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: Grid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -237,7 +237,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2628189207288939029}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[Camera]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -272,7 +272,7 @@ GameObject:
   - component: {fileID: 1860091976455938892}
   - component: {fileID: 8962438670797405469}
   - component: {fileID: 8444074676414432071}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: tr
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -356,7 +356,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5495961738805616294}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[UIS]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -392,7 +392,7 @@ GameObject:
   - component: {fileID: 8501439828291276898}
   - component: {fileID: 4305076214427051074}
   - component: {fileID: 6326437839241602281}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crosshair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -493,7 +493,7 @@ GameObject:
   - component: {fileID: 6921971428984069074}
   - component: {fileID: 8858396270204792175}
   - component: {fileID: 5467540295125346635}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -580,7 +580,7 @@ GameObject:
   m_Component:
   - component: {fileID: 888260736053150557}
   - component: {fileID: 212984467869853426}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: CamTarget
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -627,7 +627,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5727891318930659251}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[GFX]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -662,7 +662,7 @@ GameObject:
   - component: {fileID: 3642281474326196622}
   - component: {fileID: 4881556740917897762}
   - component: {fileID: 7559335299869312373}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[Trigger]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -759,7 +759,7 @@ GameObject:
   - component: {fileID: 526040697514364301}
   - component: {fileID: 7461044832683315571}
   - component: {fileID: 6381315267525103764}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[InventorySystem]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -841,21 +841,6 @@ MonoBehaviour:
       compareValue: true
       componentFieldName: 
     logic: 0
-  - targetObject: {fileID: 3264799990878356036}
-    methodName: SetActive
-    paramSources:
-    - mode: 4
-      eventFieldName: pressed
-      fixedValue: 
-      componentMember: activeSelf
-    conditions:
-    - enabled: 1
-      fieldName: pressed
-      op: 0
-      source: 0
-      compareValue: true
-      componentFieldName: 
-    logic: 0
 --- !u!114 &3547549471321579337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -884,16 +869,13 @@ MonoBehaviour:
       eventFieldName: 
       fixedValue: 
       componentMember: 
-    conditions: []
-    logic: 0
-  - targetObject: {fileID: 8035707735414911129}
-    methodName: HandleRotate
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
+    conditions:
+    - enabled: 1
+      fieldName: pressed
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
     logic: 0
 --- !u!114 &4684548699487366923
 MonoBehaviour:
@@ -923,16 +905,13 @@ MonoBehaviour:
       eventFieldName: 
       fixedValue: 
       componentMember: 
-    conditions: []
-    logic: 0
-  - targetObject: {fileID: 8035707735414911129}
-    methodName: HandleRightClick
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
+    conditions:
+    - enabled: 1
+      fieldName: pressed
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
     logic: 0
 --- !u!114 &526040697514364301
 MonoBehaviour:
@@ -962,16 +941,13 @@ MonoBehaviour:
       eventFieldName: 
       fixedValue: 
       componentMember: 
-    conditions: []
-    logic: 0
-  - targetObject: {fileID: 8035707735414911129}
-    methodName: HandleLeftClick
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
+    conditions:
+    - enabled: 1
+      fieldName: pressed
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
     logic: 0
 --- !u!114 &7461044832683315571
 MonoBehaviour:
@@ -1001,16 +977,13 @@ MonoBehaviour:
       eventFieldName: 
       fixedValue: 
       componentMember: 
-    conditions: []
-    logic: 0
-  - targetObject: {fileID: 8035707735414911129}
-    methodName: HandlePointerPosition
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
+    conditions:
+    - enabled: 1
+      fieldName: Position
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
     logic: 0
 --- !u!114 &6381315267525103764
 MonoBehaviour:
@@ -1040,7 +1013,13 @@ MonoBehaviour:
       eventFieldName: 
       fixedValue: 
       componentMember: 
-    conditions: []
+    conditions:
+    - enabled: 1
+      fieldName: Direction
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
     logic: 0
 --- !u!1 &7004296946379448321
 GameObject:
@@ -1057,7 +1036,7 @@ GameObject:
   - component: {fileID: 1559976240725562239}
   - component: {fileID: 1810976117544787841}
   - component: {fileID: 298502578690496429}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[Inputs]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1289,7 +1268,7 @@ GameObject:
   - component: {fileID: 7269267169355599136}
   - component: {fileID: 3407730062128885279}
   - component: {fileID: 3164622899176331026}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Crosshair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1365,7 +1344,7 @@ GameObject:
   - component: {fileID: 4841964156182392478}
   - component: {fileID: 2572802018829859927}
   - component: {fileID: 6541142234584175596}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: VCam_Aim
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1484,7 +1463,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1865363083342972287}
   - component: {fileID: 1018401985204964077}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[mouse]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1548,7 +1527,7 @@ GameObject:
   - component: {fileID: 5421467596689955568}
   - component: {fileID: 8098486782318971113}
   - component: {fileID: 729948941628161631}
-  m_Layer: 5
+  m_Layer: 6
   m_Name: '[InventorySystem]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1649,7 +1628,7 @@ GameObject:
   - component: {fileID: 3161967357866726988}
   - component: {fileID: 2456688657013470710}
   - component: {fileID: 7081470821752995459}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: VCam_Follow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1755,7 +1734,7 @@ GameObject:
   - component: {fileID: 215124891838063108}
   - component: {fileID: 2635570421770336366}
   - component: {fileID: 5912869001865591104}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[Player]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1859,8 +1838,8 @@ MonoBehaviour:
   jumpForce: 8
   gravity: -20
   groundedGravity: -2
-  vcamFollow: {fileID: 0}
-  vcamAim: {fileID: 0}
+  vcamFollow: {fileID: 2456688657013470710}
+  vcamAim: {fileID: 4841964156182392478}
   priorityNormal: 10
   priorityAim: 15
   aimRotationSpeed: 25
@@ -1925,7 +1904,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8242796378219941989}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: '[EVENTS]'
   m_TagString: Untagged
   m_Icon: {fileID: 0}

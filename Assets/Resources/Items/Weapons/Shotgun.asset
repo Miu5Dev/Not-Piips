@@ -19,8 +19,9 @@ MonoBehaviour:
   shotType: 1
   ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
   damage: 5
-  maxCartridges: 0
+  maxMagazineSize: 7
   fireRate: 3
   pellets: 6
   spreadAngle: 6
+  reloadTime: 1.5
   weaponPrefab: {fileID: 0}

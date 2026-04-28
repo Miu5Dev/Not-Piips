@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Minigun
   m_EditorClassIdentifier: 
   weight: 5
-  size: {x: 0, y: 0}
-  icon: {fileID: 0}
+  size: {x: 5, y: 2}
+  icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
   weaponType: 4
   shotType: 0
   ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
