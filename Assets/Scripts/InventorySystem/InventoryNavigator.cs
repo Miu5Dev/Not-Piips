@@ -42,6 +42,17 @@ public class InventoryNavigator : MonoBehaviour
 
     public bool IsNavigating => _isNavigating;
 
+    public InventoryItemUI GetCurrentItem()
+    {
+        if (!_isNavigating || _gridUI == null) return null;
+        return _currentSlot.type switch
+        {
+            SlotType.Grid     => _gridUI.GetItemAtCell(_currentSlot.cell),
+            SlotType.Wildcard => _gridUI.GetWildcardItem(),
+            _                 => null
+        };
+    }
+
     void Awake()
     {
         Instance    = this;
