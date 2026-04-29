@@ -16,12 +16,12 @@ MonoBehaviour:
   size: {x: 1, y: 1}
   icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
   weaponType: 0
-  shotType: 1
+  shotType: 0
   ammo: {fileID: 11400000, guid: 2158e703b793aee4ba333751b75f96b0, type: 2}
   damage: 10
-  maxMagazineSize: 17
+  maxMagazineSize: 5
   fireRate: 8
   pellets: 1
   spreadAngle: 4
-  reloadTime: 1.5
+  reloadTime: 5
   weaponPrefab: {fileID: 0}

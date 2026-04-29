@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9ce1368324314440a733aaf5368c631, type: 3}
   m_Name: Skeleton
   m_EditorClassIdentifier: 
-  model: {fileID: 0}
+  model: {fileID: 4709383175695139865, guid: b5840e584e830ea40a1b1e59961fe42c, type: 3}
   health: 100
   moveSpeed: 3.5
   fromPlayerMin: 7
@@ -20,7 +20,9 @@ MonoBehaviour:
   wanderFrequency: 0.8
   lateralStrength: 2.5
   aiLodDistance: 80
-  availableWeapons: []
-  poolSize: 10
+  availableWeapons:
+  - {fileID: 11400000, guid: d5744b47729e0f64ea00e5ff03f5edcc, type: 2}
+  shootBuffer: 0.3
+  poolSize: 3
   deathEffect: {fileID: 0}
   deathEffectDuration: 1.2
