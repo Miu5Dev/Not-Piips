@@ -42,6 +42,8 @@ public class EnemyController : MonoBehaviour
         _targetRotation = transform.rotation;
     }
 
+    private void OnEnable() => MinimapRenderer.Register(this);
+
     private void FixedUpdate()
     {
         if (!_alive) return;
@@ -60,6 +62,7 @@ public class EnemyController : MonoBehaviour
 
     private void OnDisable()
     {
+        MinimapRenderer.Unregister(this);
         StopAllCoroutines();
         _alive           = false;
         _isReloading     = false;
