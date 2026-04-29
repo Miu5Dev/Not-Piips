@@ -10,6 +10,10 @@ public class itemSO : ScriptableObject
     [Header("Type")]
     ItemType itemType;
     
+    [Header("Stacking")]
+    public bool isStackable  = false;
+    public int  maxStackSize = 30;
+    
     [Header("Stats")]
     public float weight;
     

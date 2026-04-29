@@ -24,7 +24,7 @@ public class InventoryDragHandler : MonoBehaviour
 
     TextMeshProUGUI _popupText;
     Coroutine       _popupCo;
-    Coroutine       _blinkCo; // tracks the blink so we can stop it early
+    Coroutine       _blinkCo;
 
     public bool            IsDragging   => _held != null;
     public bool            JustPlaced   => _justPlaced;
@@ -109,9 +109,6 @@ public class InventoryDragHandler : MonoBehaviour
             item.SetDragColor(new Color(1f, 1f, 1f, 0.05f));
             yield return new WaitForSeconds(0.08f);
         }
-        // Only set red at the end if the item is still being held.
-        // If dropped during blink, StopBlink() already stopped this coroutine
-        // before reaching here, so this line never runs for placed items.
         if (item != null && _held == item)
             item.SetDragColor(invalidColor);
 
@@ -119,10 +116,6 @@ public class InventoryDragHandler : MonoBehaviour
         _blinkCo  = null;
     }
 
-    // Stops any active blink coroutine and resets the blinking flag.
-    // Does NOT set any color — the caller (PlaceItem / Cancel / Destroy)
-    // is responsible for the item's final appearance. Setting a color here
-    // would race against whatever the placement code does, causing glitches.
     void StopBlink()
     {
         if (_blinkCo != null)
@@ -133,7 +126,6 @@ public class InventoryDragHandler : MonoBehaviour
         _blinking = false;
     }
 
-    /// Shows popup + blink feedback for the navigator
     public void ShowInvalidPlacement(InventoryItemUI item)
     {
         ShowPopup(invalidMsg);
@@ -141,7 +133,6 @@ public class InventoryDragHandler : MonoBehaviour
         _blinkCo = StartCoroutine(BlinkRed(item));
     }
 
-    /// Sets the JustPlaced flag (used by the navigator)
     public void SetJustPlaced() => _justPlaced = true;
 
     // ── Begin drag ────────────────────────────────────────────────────────
@@ -180,25 +171,21 @@ public class InventoryDragHandler : MonoBehaviour
         _dragStartFrame = Time.frameCount;
     }
 
-    // ── Event handlers (called from another script) ───────────────────────
+    // ── Event handlers ────────────────────────────────────────────────────
 
     public void HandleRotate(OnRotateKeyEvent e)
     {
-        // Forward to navigator when active so it works even if the navigator
-        // is not independently subscribed to this event in the EventBus.
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
         {
             InventoryNavigator.Instance.HandleRotate(e);
             return;
         }
-
         if (!e.pressed || _held == null || InventoryGridUI.Instance == null) return;
         _held.Reposition(_held.Origin, !_held.Rotated);
     }
 
     public void HandleRightClick(OnRightClickEvent e)
     {
-        // Forward to navigator when active.
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
         {
             InventoryNavigator.Instance.HandleRightClick(e);
@@ -208,13 +195,10 @@ public class InventoryDragHandler : MonoBehaviour
         Cancel();
     }
 
-    /// Public cancel entry point used by InventoryNavigator during WASD navigation.
     public void CancelDrag() => Cancel();
 
     public void HandleLeftClick(OnLeftClickEvent e)
     {
-        // Forward to navigator when active so it works even if the navigator
-        // is not independently subscribed to OnLeftClickEvent in the EventBus.
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
         {
             InventoryNavigator.Instance.HandleLeftClick(e);
@@ -248,9 +232,20 @@ public class InventoryDragHandler : MonoBehaviour
             int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
             var snap = new Vector2Int(col, row);
 
+            // ── Stack check ───────────────────────────────────────────────
+            if (_held.Item != null && _held.Item.isStackable && grid.TryStackOnto(_held))
+            {
+                StopBlink();
+                Destroy(_held.gameObject);
+                _held       = null;
+                _justPlaced = true;
+                return;
+            }
+            // ─────────────────────────────────────────────────────────────
+
             if (grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated))
             {
-                StopBlink();      // stop coroutine before placing; PlaceItem sets the final color
+                StopBlink();
                 grid.PlaceItem(_held, snap, _held.Rotated);
                 _held       = null;
                 _justPlaced = true;
@@ -280,7 +275,7 @@ public class InventoryDragHandler : MonoBehaviour
         }
     }
 
-    // ── Public method to place/discard from the navigator ────────────────
+    // ── TryPlaceOrDiscard (navigator) ─────────────────────────────────────
 
     public void TryPlaceOrDiscard(Vector2 screenPos)
     {
@@ -307,6 +302,17 @@ public class InventoryDragHandler : MonoBehaviour
             int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
             var snap = new Vector2Int(col, row);
 
+            // ── Stack check ───────────────────────────────────────────────
+            if (_held.Item != null && _held.Item.isStackable && grid.TryStackOnto(_held))
+            {
+                StopBlink();
+                Destroy(_held.gameObject);
+                _held       = null;
+                _justPlaced = true;
+                return;
+            }
+            // ─────────────────────────────────────────────────────────────
+
             if (grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated))
             {
                 StopBlink();
@@ -331,11 +337,11 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void ClearHeldItem()
     {
-        StopBlink(); // stop coroutine; PlaceItem already handled the color before this call
+        StopBlink();
         _held = null;
     }
 
-    // ── Update (visual only) ──────────────────────────────────────────────
+    // ── Update (visual) ───────────────────────────────────────────────────
 
     void Update()
     {
@@ -384,7 +390,7 @@ public class InventoryDragHandler : MonoBehaviour
     {
         if (_held == null) return;
 
-        StopBlink(); // stop coroutine before restoring item position
+        StopBlink();
 
         var grid = InventoryGridUI.Instance;
         if (_isNew)

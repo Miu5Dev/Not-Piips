@@ -1938,12 +1938,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a8895e9f21e6ed4da3e79afa28dd6dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentWeapon: {fileID: 11400000, guid: 02c20b6b9c759894aa7a4820925288e0, type: 2}
+  currentWeapon: {fileID: 0}
   spawnpoint: {fileID: 3468381072937664653}
   hipFireDuration: 0.5
   shotSpawnDelay: 0.06
   aimTarget: {fileID: 1037883504434991634}
-  _currentMagazine: 0
+  _currentMagazineField: 0
 --- !u!114 &5912869001865591104
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2004,6 +2004,10 @@ MonoBehaviour:
     paramSources:
     - mode: 0
       eventFieldName: weaponToEquip
+      fixedValue: 
+      componentMember: 
+    - mode: 0
+      eventFieldName: initialAmmo
       fixedValue: 
       componentMember: 
     conditions: []

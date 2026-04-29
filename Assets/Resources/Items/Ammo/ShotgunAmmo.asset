@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9d586ee020d86a4d8095c9f3f6e1fd1, type: 3}
-  m_Name: PistolAmmo
+  m_Name: ShotgunAmmo
   m_EditorClassIdentifier: 
   isStackable: 1
-  maxStackSize: 30
+  maxStackSize: 8
   weight: 5
   size: {x: 1, y: 1}
   icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}

@@ -2,7 +2,14 @@ using UnityEngine;
 
 public class InventoryEquipHandler : MonoBehaviour
 {
+    public static InventoryEquipHandler Instance { get; private set; }
+
     InventoryItemUI _currentlyEquipped;
+
+    // Instancia específica del item equipado (no el SO)
+    public InventoryItemUI EquippedItem => _currentlyEquipped;
+
+    void Awake() => Instance = this;
 
     public void HandleEquip(OnEquipKeyEvent e)
     {
@@ -10,8 +17,6 @@ public class InventoryEquipHandler : MonoBehaviour
 
         InventoryItemUI target;
 
-        // Priority 1: WASD navigator cursor (controller / keyboard mode).
-        // Priority 2: mouse hover (mouse mode).
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
             target = InventoryNavigator.Instance.GetCurrentItem();
         else
@@ -26,9 +31,13 @@ public class InventoryEquipHandler : MonoBehaviour
         _currentlyEquipped = target;
         target.SetEquipped(true);
 
-        EventBus.Raise(new OnWeaponEquipEvent { weaponToEquip = weapon });
-        InventoryDragHandler.Instance?.ShowPopup($"{weapon.name} Equipped!");
+        EventBus.Raise(new OnWeaponEquipEvent
+        {
+            weaponToEquip = weapon,
+            initialAmmo   = target.StoredAmmo
+        });
 
+        InventoryDragHandler.Instance?.ShowPopup($"{weapon.name} Equipped!");
         InventoryNavigator.Instance?.HandleEquip(e);
     }
 }
