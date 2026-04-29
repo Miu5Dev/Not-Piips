@@ -3,19 +3,23 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
+public class InventoryItemUI : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public itemSO     Item       { get; private set; }
     public Vector2Int Origin     { get; private set; }
     public bool       Rotated    { get; private set; }
     public bool       InWildcard { get; private set; }
 
+    public static InventoryItemUI HoveredItem { get; private set; }
+
     float _cellSize, _cellSpacing;
     Image _bg;
     Image _icon;
     RectTransform _iconRt;
+    readonly System.Collections.Generic.List<Image> _cornerImages = new();
 
-    static readonly Color BgEmpty = new Color(1f, 1f, 1f, 0.12f);
+    static readonly Color BgEmpty     = new Color(1f, 1f, 1f, 0.12f);
+    static readonly Color CornerEquip = new Color(0.2f, 1f, 0.3f, 1f);
 
     public void Init(itemSO item, bool rotated, float cellSize, float cellSpacing)
     {
@@ -165,6 +169,26 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler
         var img = go.GetComponent<Image>();
         img.color         = Color.white;
         img.raycastTarget = false;
+        _cornerImages.Add(img);
+    }
+
+    public void SetEquipped(bool equipped)
+    {
+        Color c = equipped ? CornerEquip : Color.white;
+        foreach (var img in _cornerImages)
+            img.color = c;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) => HoveredItem = this;
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (HoveredItem == this) HoveredItem = null;
+    }
+
+    void OnDestroy()
+    {
+        if (HoveredItem == this) HoveredItem = null;
     }
 
     void SpawnLabel(string text, float cellSize, float thick)

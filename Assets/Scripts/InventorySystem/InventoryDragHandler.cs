@@ -184,8 +184,13 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void HandleRotate(OnRotateKeyEvent e)
     {
-        // If the navigator is active, it handles rotation directly — skip here.
-        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
+        // Forward to navigator when active so it works even if the navigator
+        // is not independently subscribed to this event in the EventBus.
+        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
+        {
+            InventoryNavigator.Instance.HandleRotate(e);
+            return;
+        }
 
         if (!e.pressed || _held == null || InventoryGridUI.Instance == null) return;
         _held.Reposition(_held.Origin, !_held.Rotated);
@@ -193,8 +198,12 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void HandleRightClick(OnRightClickEvent e)
     {
-        // If the navigator is active, it handles cancellation directly — skip here.
-        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
+        // Forward to navigator when active.
+        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
+        {
+            InventoryNavigator.Instance.HandleRightClick(e);
+            return;
+        }
         if (!e.pressed || _held == null) return;
         Cancel();
     }
@@ -204,8 +213,13 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void HandleLeftClick(OnLeftClickEvent e)
     {
-        // If the navigator is active, it handles placement directly — skip here.
-        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
+        // Forward to navigator when active so it works even if the navigator
+        // is not independently subscribed to OnLeftClickEvent in the EventBus.
+        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
+        {
+            InventoryNavigator.Instance.HandleLeftClick(e);
+            return;
+        }
 
         if (!e.pressed || _held == null) return;
         if (Time.frameCount == _dragStartFrame) return;
@@ -258,8 +272,12 @@ public class InventoryDragHandler : MonoBehaviour
 
     public void HandlePointerPosition(OnPointerPositionEvent e)
     {
-        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
         _currentMousePos = e.Position;
+        if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
+        {
+            InventoryNavigator.Instance.HandlePointerPosition(e);
+            return;
+        }
     }
 
     // ── Public method to place/discard from the navigator ────────────────

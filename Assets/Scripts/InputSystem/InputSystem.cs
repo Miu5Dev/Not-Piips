@@ -42,6 +42,8 @@ public class InputSystem : MonoBehaviour
         inputs.Player.invLeftClick.canceled += OnInvLeftClickInput;
         inputs.Player.invRightClick.performed += OnInvRightClickInput;
         inputs.Player.invRightClick.canceled += OnInvRightClickInput;
+        inputs.Player.invEquip.performed += OnInvEquipInput;
+        inputs.Player.invEquip.canceled += OnInvEquipInput;
         inputs.Player.PointerPosition.performed += OnPointerPosition;
         inputs.Player.PointerPosition.canceled += OnPointerPosition;
 
@@ -189,6 +191,14 @@ public class InputSystem : MonoBehaviour
         });
     }
     
+    private void OnInvEquipInput(InputAction.CallbackContext context)
+    {
+        EventBus.Raise(new OnEquipKeyEvent()
+        {
+            pressed = context.performed
+        });
+    }
+
     private void OnPointerPosition(InputAction.CallbackContext context)
     {
         EventBus.Raise(new OnPointerPositionEvent

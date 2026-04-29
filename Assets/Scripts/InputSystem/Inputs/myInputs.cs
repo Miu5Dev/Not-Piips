@@ -208,6 +208,15 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""invEquip"",
+                    ""type"": ""Button"",
+                    ""id"": ""d4e5f6a7-b8c9-4012-def0-123456789abc"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -648,6 +657,28 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""invRightClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e5f6a7b8-c9d0-4123-ef01-23456789abcd"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""invEquip"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f6a7b8c9-d0e1-4234-f012-3456789abcde"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""invEquip"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -1281,6 +1312,7 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
         m_Player_invRotate = m_Player.FindAction("invRotate", throwIfNotFound: true);
         m_Player_invLeftClick = m_Player.FindAction("invLeftClick", throwIfNotFound: true);
         m_Player_invRightClick = m_Player.FindAction("invRightClick", throwIfNotFound: true);
+        m_Player_invEquip = m_Player.FindAction("invEquip", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1387,6 +1419,7 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_invRotate;
     private readonly InputAction m_Player_invLeftClick;
     private readonly InputAction m_Player_invRightClick;
+    private readonly InputAction m_Player_invEquip;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1450,6 +1483,10 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/invRightClick".
         /// </summary>
         public InputAction @invRightClick => m_Wrapper.m_Player_invRightClick;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/invEquip".
+        /// </summary>
+        public InputAction @invEquip => m_Wrapper.m_Player_invEquip;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1515,6 +1552,9 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
             @invRightClick.started += instance.OnInvRightClick;
             @invRightClick.performed += instance.OnInvRightClick;
             @invRightClick.canceled += instance.OnInvRightClick;
+            @invEquip.started += instance.OnInvEquip;
+            @invEquip.performed += instance.OnInvEquip;
+            @invEquip.canceled += instance.OnInvEquip;
         }
 
         /// <summary>
@@ -1565,6 +1605,9 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
             @invRightClick.started -= instance.OnInvRightClick;
             @invRightClick.performed -= instance.OnInvRightClick;
             @invRightClick.canceled -= instance.OnInvRightClick;
+            @invEquip.started -= instance.OnInvEquip;
+            @invEquip.performed -= instance.OnInvEquip;
+            @invEquip.canceled -= instance.OnInvEquip;
         }
 
         /// <summary>
@@ -1956,6 +1999,13 @@ public partial class @MyInputs: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnInvRightClick(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "invEquip" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnInvEquip(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.
