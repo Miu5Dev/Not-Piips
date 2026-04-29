@@ -248,4 +248,9 @@ public class ShootController : MonoBehaviour
             EventBus.Raise(_hipFireOff);
         }
     }
+    
+    public void AddAmmo(int amount)
+    {
+        _currentMagazine = Mathf.Min(_currentMagazine + amount, currentWeapon.maxMagazineSize);
+    }
 }

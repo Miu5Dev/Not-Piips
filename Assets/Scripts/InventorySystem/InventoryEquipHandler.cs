@@ -6,7 +6,6 @@ public class InventoryEquipHandler : MonoBehaviour
 
     InventoryItemUI _currentlyEquipped;
 
-    // Instancia específica del item equipado (no el SO)
     public InventoryItemUI EquippedItem => _currentlyEquipped;
 
     void Awake() => Instance = this;
@@ -23,6 +22,49 @@ public class InventoryEquipHandler : MonoBehaviour
             target = InventoryItemUI.HoveredItem;
 
         if (target == null) return;
+
+        // ── Recarga instantánea al equipar munición compatible ────────────
+        if (target.Item is AmmoSO ammoItem)
+        {
+            var shooter = ShootController.Instance;
+            if (shooter != null
+                && shooter.CurrentWeapon != null
+                && shooter.CurrentWeapon.ammo == ammoItem
+                && shooter.CurrentMagazine < shooter.MaxMagazineSize)
+            {
+                bool isManual = shooter.CurrentWeapon.shotType == ShotType.Manual;
+
+                if (isManual)
+                {
+                    // 1 item del stack = 1 bala → consume lo que necesite hasta llenar
+                    int needed   = shooter.MaxMagazineSize - shooter.CurrentMagazine;
+                    int consumed = AmmoInventory.Consume(ammoItem, needed);
+                    if (consumed > 0)
+                    {
+                        shooter.AddAmmo(consumed);
+                        InventoryDragHandler.Instance?.ShowPopup(
+                            $"Loaded {consumed} rounds ({shooter.CurrentMagazine}/{shooter.MaxMagazineSize})"
+                        );
+                    }
+                }
+                else
+                {
+                    // 1 item del stack = cargador entero → consume exactamente 1
+                    int consumed = AmmoInventory.Consume(ammoItem, 1);
+                    if (consumed > 0)
+                    {
+                        shooter.AddAmmo(shooter.MaxMagazineSize); // llena el cargador
+                        InventoryDragHandler.Instance?.ShowPopup(
+                            $"Magazine loaded! ({shooter.CurrentMagazine}/{shooter.MaxMagazineSize})"
+                        );
+                    }
+                }
+            }
+            InventoryNavigator.Instance?.HandleEquip(e);
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         if (target.Item is not WeaponSO weapon) return;
 
         if (_currentlyEquipped != null && _currentlyEquipped != target)
