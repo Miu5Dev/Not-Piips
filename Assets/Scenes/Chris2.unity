@@ -2026,8 +2026,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e27fa3114e23d546a8d0e007e24f600, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerTransform: {fileID: 0}
-  cameraTransform: {fileID: 0}
+  playerTransform: {fileID: 842589281}
+  cameraTransform: {fileID: 1927266663}
   minimapWorldRadius: 20
   playerDotSize: 2
   enemyDotSize: 2
@@ -2734,10 +2734,10 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1414346271}
+      addedObject: {fileID: 842589281}
     - targetCorrespondingSourceObject: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 842589281}
+      addedObject: {fileID: 1414346271}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
 --- !u!1001 &1837006143
@@ -2805,6 +2805,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 8782050542970856215, guid: cd0a953d7ee6f7e4c961141d5939acdd, type: 3}
   m_PrefabInstance: {fileID: 1837006143}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1927266663 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 888260736053150557, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+  m_PrefabInstance: {fileID: 1811591490}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1933000764
 PrefabInstance:

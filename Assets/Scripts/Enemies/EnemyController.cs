@@ -190,7 +190,7 @@ public class EnemyController : MonoBehaviour
         if (Time.time < _lastShotTime + _data.shootBuffer) return;
 
         // Aim the muzzle (ShootController's spawnpoint) at the player
-        Vector3 dir = (_player.position + Vector3.up - _muzzle.position).normalized;
+        Vector3 dir = (_player.position + Vector3.up * 0.5f - _muzzle.position).normalized;
         if (dir == Vector3.zero) return;
         _muzzle.rotation = Quaternion.LookRotation(dir);
 
@@ -237,7 +237,7 @@ public class EnemyController : MonoBehaviour
 
         var go = new GameObject("Muzzle");
         go.transform.SetParent(transform);
-        go.transform.localPosition = new Vector3(0f, 1f, 0.6f);
+        go.transform.localPosition = new Vector3(0f, 0.6f, 0.6f);
         _muzzle = go.transform;
 
         _shootController.SetSpawnPoint(_muzzle);
