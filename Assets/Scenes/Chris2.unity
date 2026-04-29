@@ -1942,11 +1942,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 1736569779}
   cameraTransform: {fileID: 0}
-  minimapWorldRadius: 25
+  minimapWorldRadius: 20
   playerDotSize: 2
   enemyDotSize: 2
   bulletDotSize: 1
-  minimapUISize: 370.3
+  minimapUISize: 433.1
   minimapUIMargin: 3
   circleMaskSprite: {fileID: 0}
 --- !u!114 &1414346270
@@ -3119,7 +3119,7 @@ PrefabInstance:
     - target: {fileID: 2635570421770336366, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: currentWeapon
       value: 
-      objectReference: {fileID: 11400000, guid: d5744b47729e0f64ea00e5ff03f5edcc, type: 2}
+      objectReference: {fileID: 11400000, guid: b198a0b1dd3a4a4439d4bab6becc88d2, type: 2}
     - target: {fileID: 8884231642506751066, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_Name
       value: '[Player]'

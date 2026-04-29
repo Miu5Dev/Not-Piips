@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
   m_Name: EnemyGunSimple
   m_EditorClassIdentifier: 
+  isStackable: 0
+  maxStackSize: 30
   weight: 0
   size: {x: 1, y: 1}
   icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
@@ -22,6 +24,7 @@ MonoBehaviour:
   maxMagazineSize: 5
   fireRate: 8
   pellets: 1
-  spreadAngle: 4
+  spreadAngle: 1
+  spreadOnlyHorizontal: 1
   reloadTime: 5
   weaponPrefab: {fileID: 0}

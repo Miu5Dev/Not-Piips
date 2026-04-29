@@ -67,6 +67,12 @@ public class EnemyPool : MonoBehaviour
 
         var controller = go.AddComponent<EnemyController>();
 
+        // Flag the ShootController as enemy-owned NOW, while the GameObject is still
+        // inactive, so ShootController.Awake() sees IsPlayerController=false when
+        // SetActive(true) is first called and does not overwrite ShootController.Instance.
+        var sc = go.GetComponent<ShootController>();
+        if (sc != null) sc.IsPlayerController = false;
+
         // Instantiate model as a child of the root at pool creation time
         if (type.model != null)
         {

@@ -4,7 +4,13 @@ using Random = UnityEngine.Random;
 
 public class ShootController : MonoBehaviour
 {
-    public static ShootController Instance { get; private set; } // ← nuevo
+    public static ShootController Instance { get; private set; }
+
+    /// <summary>
+    /// False when this component belongs to an enemy.
+    /// Skips singleton registration, UI refresh, and inventory-gated reload.
+    /// </summary>
+    public bool IsPlayerController { get; set; } = true;
 
     [SerializeField] private WeaponSO currentWeapon;
     [SerializeField] private Transform spawnpoint;
@@ -21,7 +27,8 @@ public class ShootController : MonoBehaviour
         {
             if (_currentMagazineField == value) return;
             _currentMagazineField = value;
-            InventoryGridUI.Instance?.RefreshWeaponAmmoLabels();
+            if (IsPlayerController)
+                InventoryGridUI.Instance?.RefreshWeaponAmmoLabels();
         }
     }
     private bool  _isReloading;
@@ -42,9 +49,12 @@ public class ShootController : MonoBehaviour
     public bool IsMagazineEmpty => _currentMagazine <= 0;
     public WeaponSO CurrentWeapon => currentWeapon;
 
+    /// <summary>Lets EnemyController set the muzzle transform at runtime.</summary>
+    public void SetSpawnPoint(Transform t) => spawnpoint = t;
+
     private void Awake()
     {
-        Instance = this; // ← nuevo
+        if (IsPlayerController) Instance = this;
 
         _waitForDelay = new WaitForSeconds(shotSpawnDelay);
         _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
@@ -165,7 +175,7 @@ public class ShootController : MonoBehaviour
         if (currentWeapon == null) return;
         if (_currentMagazine >= currentWeapon.maxMagazineSize) return;
 
-        if (AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
+        if (IsPlayerController && AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
         {
             Debug.Log("[ShootController] Sin munición en el inventario.");
             return;
@@ -180,29 +190,26 @@ public class ShootController : MonoBehaviour
 
         yield return new WaitForSeconds(currentWeapon.reloadTime);
 
-        bool isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
-
-        // Consume exactamente 1 item del stack en ambos casos
-        int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
-
-        if (consumed > 0)
+        if (IsPlayerController)
         {
-            if (isShotgunStyle)
+            bool isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
+            int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
+
+            if (consumed > 0)
             {
-                // 1 item = 1 cartucho introducido
-                _currentMagazine = Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize);
-                Debug.Log($"[ShootController] +1 cartucho ({_currentMagazine}/{currentWeapon.maxMagazineSize})");
+                _currentMagazine = isShotgunStyle
+                    ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
+                    : currentWeapon.maxMagazineSize;
             }
             else
             {
-                // 1 item = cargador entero
-                _currentMagazine = currentWeapon.maxMagazineSize;
-                Debug.Log($"[ShootController] Recargado completo ({_currentMagazine}/{currentWeapon.maxMagazineSize})");
+                Debug.Log("[ShootController] Sin munición en el inventario.");
             }
         }
         else
         {
-            Debug.Log("[ShootController] Sin munición en el inventario.");
+            // Enemy: infinite ammo — always refill to full after reload time
+            _currentMagazine = currentWeapon.maxMagazineSize;
         }
 
         _isReloading = false;
