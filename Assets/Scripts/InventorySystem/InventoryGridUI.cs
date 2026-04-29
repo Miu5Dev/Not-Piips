@@ -47,6 +47,19 @@ public class InventoryGridUI : MonoBehaviour
     void OnEnable()
     {
         if (_cells.Count > 0) ApplySize();
+        RefreshWeaponAmmoLabels(); // ← actualiza balas al abrir inventario
+    }
+
+    public void RefreshWeaponAmmoLabels()
+    {
+        if (ShootController.Instance == null) return;
+        if (InventoryEquipHandler.Instance == null) return;
+
+        // Actualizamos SOLO la instancia exacta equipada, no por SO
+        InventoryItemUI equippedView = InventoryEquipHandler.Instance.EquippedItem;
+        if (equippedView == null) return;
+
+        equippedView.SetStoredAmmo(ShootController.Instance.CurrentMagazine);
     }
 
     void OnValidate()
@@ -165,6 +178,27 @@ public class InventoryGridUI : MonoBehaviour
     {
         if (_logicGrid == null) return false;
 
+        // ── Stack check: si ya existe un stack del mismo item, apila primero ──
+        if (item.isStackable)
+        {
+            foreach (var existing in _itemViews)
+            {
+                if (existing == null || existing.Item != item) continue;
+                if (existing.StackCount >= item.maxStackSize) continue;
+                existing.AddToStack(1, item.maxStackSize);
+                return true;
+            }
+            // Revisar wildcard también
+            if (_wildcardItem != null
+                && _wildcardItem.Item == item
+                && _wildcardItem.StackCount < item.maxStackSize)
+            {
+                _wildcardItem.AddToStack(1, item.maxStackSize);
+                return true;
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         if (_logicGrid.TryAdd(item.size, out var origin, out var rotated))
         {
             var view = CreateItemVisual(item, rotated);
@@ -267,7 +301,7 @@ public class InventoryGridUI : MonoBehaviour
         return view;
     }
 
-    // ── Nuevos métodos para el navegador ─────────────────────────────────────
+    // ── Navigator helpers ─────────────────────────────────────────────────
 
     public InventoryItemUI GetItemAtCell(Vector2Int cell)
     {
@@ -283,14 +317,52 @@ public class InventoryGridUI : MonoBehaviour
         return null;
     }
 
-    public InventoryItemUI GetWildcardItem()
+    public InventoryItemUI GetWildcardItem() => _wildcardItem;
+
+    // ── Stacking ──────────────────────────────────────────────────────────
+
+    /// Intenta apilar <incoming> sobre cualquier stack existente del mismo item.
+    /// Si devuelve true, el caller debe destruir el GameObject de <incoming>.
+    public bool TryStackOnto(InventoryItemUI incoming)
     {
-        return _wildcardItem;
+        if (incoming == null || incoming.Item == null) return false;
+        if (!incoming.Item.isStackable)                return false;
+
+        foreach (InventoryItemUI existing in _itemViews)
+        {
+            if (existing == null || existing.Item != incoming.Item) continue;
+
+            int space = incoming.Item.maxStackSize - existing.StackCount;
+            if (space <= 0) continue;
+
+            if (incoming.StackCount <= space)
+            {
+                existing.AddToStack(incoming.StackCount, incoming.Item.maxStackSize);
+                return true;
+            }
+            else
+            {
+                existing.AddToStack(space, incoming.Item.maxStackSize);
+                incoming.RemoveFromStack(space);
+            }
+        }
+        return false;
     }
+
+    /// Devuelve todos los items del grid + wildcard (usado por AmmoInventory).
+    public IEnumerable<InventoryItemUI> GetAllItems()
+    {
+        foreach (var item in _itemViews)
+            if (item != null) yield return item;
+
+        if (_wildcardItem != null) yield return _wildcardItem;
+    }
+
+    // ── Rebuild ───────────────────────────────────────────────────────────
 
     public void Rebuild(int newColumns, int newRows)
     {
-        foreach (var c in _cells)   Destroy(c.gameObject);
+        foreach (var c in _cells)     Destroy(c.gameObject);
         foreach (var v in _itemViews) Destroy(v.gameObject);
         _cells.Clear();
         _itemViews.Clear();

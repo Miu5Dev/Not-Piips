@@ -10,18 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
-  m_Name: Shotgun
+  m_Name: EnemyGunSimple
   m_EditorClassIdentifier: 
-  weight: 5
-  size: {x: 2, y: 1}
+  isStackable: 0
+  maxStackSize: 30
+  weight: 0
+  size: {x: 1, y: 1}
   icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
-  weaponType: 1
-  shotType: 1
-  ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
-  damage: 5
-  maxMagazineSize: 7
-  fireRate: 3
-  pellets: 6
-  spreadAngle: 6
-  reloadTime: 1.5
+  weaponType: 0
+  shotType: 0
+  ammo: {fileID: 11400000, guid: 2158e703b793aee4ba333751b75f96b0, type: 2}
+  damage: 10
+  maxMagazineSize: 5
+  fireRate: 8
+  pellets: 1
+  spreadAngle: 1
+  spreadOnlyHorizontal: 1
+  reloadTime: 5
   weaponPrefab: {fileID: 0}

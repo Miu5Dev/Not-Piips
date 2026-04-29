@@ -16,7 +16,10 @@ public class WeaponSO : itemSO
     [Header("Fire")]
     public float fireRate    = 8f;
     public int   pellets     = 1;
-    public float spreadAngle = 0f;
+
+    [Header("Spread")]
+    public float spreadAngle          = 0f;
+    public bool  spreadOnlyHorizontal = false; // ← nuevo
 
     [Header("Reload")]
     public float reloadTime = 1.5f;

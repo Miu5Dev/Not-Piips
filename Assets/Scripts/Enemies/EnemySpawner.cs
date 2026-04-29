@@ -115,6 +115,11 @@ public class EnemySpawner : MonoBehaviour
         return transform.position + new Vector3(circle.x, 0f, circle.y);
     }
 
+    public void SetPlayerTransform(Transform target)
+    {
+        playerTransform = target;
+    }
+    
     // =========================================================
     // EDITOR GIZMO
     // =========================================================

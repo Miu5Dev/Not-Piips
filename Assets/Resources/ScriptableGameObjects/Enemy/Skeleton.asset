@@ -22,7 +22,7 @@ MonoBehaviour:
   aiLodDistance: 80
   availableWeapons:
   - {fileID: 11400000, guid: d5744b47729e0f64ea00e5ff03f5edcc, type: 2}
-  shootBuffer: 0.3
+  shootBuffer: 1
   poolSize: 3
   deathEffect: {fileID: 0}
   deathEffectDuration: 1.2

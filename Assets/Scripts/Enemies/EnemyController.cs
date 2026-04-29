@@ -2,15 +2,16 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(ShootController))]
 public class EnemyController : MonoBehaviour
 {
     // ── Cached references ─────────────────────────────────────────────────────
     private EnemySO         _data;
     private Transform       _player;
-    private WeaponSO        _weapon;
     private Rigidbody       _rb;
     private Transform       _muzzle;
     private GameObject      _modelRoot;
+    private ShootController _shootController;
 
     // ── AI desired state (written by coroutine, consumed by FixedUpdate) ──────
     private Vector3    _desiredVelocity;
@@ -18,12 +19,10 @@ public class EnemyController : MonoBehaviour
 
     // ── Runtime state ─────────────────────────────────────────────────────────
     private float         _currentHealth;
-    private float         _uniqueOffset;   // per-instance sine phase
+    private float         _uniqueOffset;
     private float         _lastShotTime;
     private bool          _alive;
     private System.Action _onDeath;
-    private int           _currentMagazine;
-    private bool          _isReloading;
 
     // ── Tick constants ────────────────────────────────────────────────────────
     private const float TickMin    = 0.10f;
@@ -40,7 +39,14 @@ public class EnemyController : MonoBehaviour
         _rb             = GetComponent<Rigidbody>();
         _rb.constraints = RigidbodyConstraints.FreezeRotation;
         _targetRotation = transform.rotation;
+
+        _shootController = GetComponent<ShootController>();
+        _shootController.IsPlayerController = false;
+
+        EnsureMuzzle(); // muzzle must exist before any Initialize call
     }
+
+    private void OnEnable() => MinimapRenderer.Register(this);
 
     private void FixedUpdate()
     {
@@ -60,9 +66,10 @@ public class EnemyController : MonoBehaviour
 
     private void OnDisable()
     {
+        MinimapRenderer.Unregister(this);
+        _shootController?.OnFireReleased();
         StopAllCoroutines();
         _alive           = false;
-        _isReloading     = false;
         _desiredVelocity = Vector3.zero;
     }
 
@@ -81,14 +88,12 @@ public class EnemyController : MonoBehaviour
         _uniqueOffset  = Random.Range(0f, Mathf.PI * 2f);
         _lastShotTime  = Time.time + Random.Range(0f, 1f); // stagger first shot
 
-        _weapon = data.availableWeapons != null && data.availableWeapons.Length > 0
+        var weapon = data.availableWeapons != null && data.availableWeapons.Length > 0
             ? data.availableWeapons[Random.Range(0, data.availableWeapons.Length)]
             : null;
 
-        _currentMagazine = _weapon != null ? _weapon.maxMagazineSize : 0;
-        _isReloading     = false;
+        _shootController.EquipWeapon(weapon);
 
-        EnsureMuzzle();
         StartCoroutine(AITick());
     }
 
@@ -168,63 +173,30 @@ public class EnemyController : MonoBehaviour
     }
 
     // =========================================================
-    // SHOOT — hooks directly into BulletPool + Shot (existing system)
+    // SHOOT — delegates entirely to ShootController
     // =========================================================
 
     private void TryShoot(float dist)
     {
-        if (_weapon == null || _weapon.ammo == null) return;
-        if (_isReloading) return;
-        if (_currentMagazine <= 0)
+        if (_shootController == null) return;
+
+        if (_shootController.IsMagazineEmpty)
         {
-            StartCoroutine(Reload());
+            _shootController.Reload();
             return;
         }
 
-        float cooldown = 1f / _weapon.fireRate + _data.shootBuffer;
-        if (Time.time < _lastShotTime + cooldown) return;
+        if (_shootController.IsReloading) return;
+        if (Time.time < _lastShotTime + _data.shootBuffer) return;
 
-        Vector3 aimOffset = _player.position + Vector3.up * 1f;
-        Vector3 dir       = (aimOffset - _muzzle.position).normalized;
+        // Aim the muzzle (ShootController's spawnpoint) at the player
+        Vector3 dir = (_player.position + Vector3.up * 0.5f - _muzzle.position).normalized;
         if (dir == Vector3.zero) return;
+        _muzzle.rotation = Quaternion.LookRotation(dir);
 
         _lastShotTime = Time.time;
-        _currentMagazine--;
-
-        Quaternion baseRot = Quaternion.LookRotation(dir);
-        int        pellets = Mathf.Max(1, _weapon.pellets);
-
-        for (int i = 0; i < pellets; i++)
-        {
-            Quaternion shotRot = _weapon.spreadAngle > 0f
-                ? GetSpreadRotation(baseRot, _weapon.spreadAngle)
-                : baseRot;
-
-            Shot shot = BulletPool.GetOrCreate().Get(
-                _weapon.ammo.ammoPrefab,
-                _muzzle.position,
-                shotRot);
-
-            shot.Initialize(
-                _weapon.damage,
-                _weapon.ammo.speed,
-                _weapon.ammo.gravityForce,
-                _weapon.ammo.decalPrefab);
-        }
-    }
-
-    private IEnumerator Reload()
-    {
-        _isReloading = true;
-        yield return new WaitForSeconds(_weapon.reloadTime);
-        _currentMagazine = _weapon.maxMagazineSize;
-        _isReloading     = false;
-    }
-
-    private static Quaternion GetSpreadRotation(Quaternion baseRot, float angle)
-    {
-        Vector2 spread = Random.insideUnitCircle * angle;
-        return baseRot * Quaternion.Euler(spread.y, spread.x, 0f);
+        _shootController.OnFirePressed();
+        _shootController.OnFireReleased();
     }
 
     // =========================================================
@@ -265,7 +237,9 @@ public class EnemyController : MonoBehaviour
 
         var go = new GameObject("Muzzle");
         go.transform.SetParent(transform);
-        go.transform.localPosition = new Vector3(0f, 1f, 0.6f);
+        go.transform.localPosition = new Vector3(0f, 0.6f, 0.6f);
         _muzzle = go.transform;
+
+        _shootController.SetSpawnPoint(_muzzle);
     }
 }
