@@ -21,12 +21,96 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler, IPointerEnter
     static readonly Color BgEmpty     = new Color(1f, 1f, 1f, 0.12f);
     static readonly Color CornerEquip = new Color(0.2f, 1f, 0.3f, 1f);
 
+    // ── Stack & ammo (label arriba-derecha) ───────────────────────────────
+    int             _stackCount  = 1;
+    int             _storedAmmo  = -1; // -1 = no inicializado (solo armas)
+    TextMeshProUGUI _topRightLabel;
+
+    public int StackCount  => _stackCount;
+    public int StoredAmmo  => _storedAmmo;
+
+    public void SetStoredAmmo(int ammo)
+    {
+        _storedAmmo = ammo;
+        RefreshTopRightLabel();
+    }
+
+    public void InitStack(int count)
+    {
+        _stackCount = Mathf.Max(1, count);
+        RefreshTopRightLabel();
+    }
+
+    public bool AddToStack(int amount, int maxStack)
+    {
+        if (_stackCount >= maxStack) return false;
+        _stackCount = Mathf.Min(_stackCount + amount, maxStack);
+        RefreshTopRightLabel();
+        return true;
+    }
+
+    public void RemoveFromStack(int amount)
+    {
+        _stackCount = Mathf.Max(0, _stackCount - amount);
+        RefreshTopRightLabel();
+    }
+
+    void CreateTopRightLabel()
+    {
+        var go = new GameObject("TopRightLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+        go.transform.SetParent(transform, false);
+
+        var rt          = go.GetComponent<RectTransform>();
+        rt.anchorMin    = rt.anchorMax = new Vector2(1f, 1f); // arriba-derecha
+        rt.pivot        = new Vector2(1f, 1f);
+        // pequeño padding interior respecto al borde del item
+        rt.anchoredPosition = new Vector2(-_cellSize * 0.05f, -_cellSize * 0.05f);
+        rt.sizeDelta        = new Vector2(_cellSize * 1.8f, _cellSize * 0.38f);
+
+        _topRightLabel               = go.GetComponent<TextMeshProUGUI>();
+        _topRightLabel.fontSize      = _cellSize * 0.28f;
+        _topRightLabel.fontStyle     = FontStyles.Bold;
+        _topRightLabel.color         = Color.white;
+        _topRightLabel.alignment     = TextAlignmentOptions.TopRight;
+        _topRightLabel.raycastTarget = false;
+        go.SetActive(false);
+    }
+
+    void RefreshTopRightLabel()
+    {
+        if (_topRightLabel == null) return;
+
+        if (Item == null) { _topRightLabel.gameObject.SetActive(false); return; }
+
+        if (Item.isStackable && _stackCount > 1)
+        {
+            // Munición / items apilables → mostrar cantidad
+            _topRightLabel.text = $"×{_stackCount}";
+            _topRightLabel.gameObject.SetActive(true);
+        }
+        else if (Item is WeaponSO weaponSO && _storedAmmo >= 0)
+        {
+            // Arma → mostrar balas guardadas sobre el máximo
+            _topRightLabel.text = $"{_storedAmmo}/{weaponSO.maxMagazineSize}";
+            _topRightLabel.gameObject.SetActive(true);
+        }
+        else
+        {
+            _topRightLabel.gameObject.SetActive(false);
+        }
+    }
+    // ── Fin label arriba-derecha ───────────────────────────────────────────
+
     public void Init(itemSO item, bool rotated, float cellSize, float cellSpacing)
     {
         Item         = item;
         Rotated      = rotated;
         _cellSize    = cellSize;
         _cellSpacing = cellSpacing;
+
+        // Armas se inicializan con cargador completo
+        if (item is WeaponSO w)
+            _storedAmmo = w.maxMagazineSize;
 
         _bg = GetComponent<Image>();
         _bg.sprite        = null;
@@ -52,6 +136,8 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler, IPointerEnter
         SpawnCorner(new Vector2(1f, 0f), arm, thick);
 
         SpawnLabel(item.name, cellSize, thick);
+        CreateTopRightLabel();
+        RefreshTopRightLabel();
     }
 
     public void Reposition(Vector2Int origin, bool rotated)
@@ -145,8 +231,6 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler, IPointerEnter
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;
         if (InventoryDragHandler.Instance == null || InventoryDragHandler.Instance.IsDragging) return;
-    
-        // Ignorar el clic del ratón si la navegación por teclado/mando está activa
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating) return;
 
         InventoryDragHandler.Instance.BeginDragExisting(this);
@@ -201,10 +285,10 @@ public class InventoryItemUI : MonoBehaviour, IPointerDownHandler, IPointerEnter
         rt.anchorMax        = new Vector2(1f, 0f);
         rt.pivot            = Vector2.zero;
         rt.anchoredPosition = new Vector2(pad, pad);
-        rt.sizeDelta        = new Vector2(-pad * 2f, cellSize * 0.28f);
+        rt.sizeDelta        = new Vector2(-pad * 2f, cellSize * 0.35f);
         var tmp = go.GetComponent<TextMeshProUGUI>();
         tmp.text          = text;
-        tmp.fontSize      = cellSize * 0.22f;
+        tmp.fontSize      = cellSize * 0.25f;
         tmp.color         = Color.white;
         tmp.alignment     = TextAlignmentOptions.BottomLeft;
         tmp.overflowMode  = TextOverflowModes.Ellipsis;

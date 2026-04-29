@@ -45,6 +45,8 @@ public class Shot : MonoBehaviour
 
     private void OnEnable()
     {
+        MinimapRenderer.RegisterBullet(this);
+
         // Always re-cache — TrailFader.Detach replaces the trail child
         trail = GetComponentInChildren<TrailRenderer>(includeInactive: true);
         if (trail == null) return;
@@ -56,6 +58,8 @@ public class Shot : MonoBehaviour
 
     private void OnDisable()
     {
+        MinimapRenderer.UnregisterBullet(this);
+
         initialized       = false;
         rb.linearVelocity = Vector3.zero;
         rb.isKinematic    = false;

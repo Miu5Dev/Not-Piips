@@ -2,7 +2,13 @@ using UnityEngine;
 
 public class InventoryEquipHandler : MonoBehaviour
 {
+    public static InventoryEquipHandler Instance { get; private set; }
+
     InventoryItemUI _currentlyEquipped;
+
+    public InventoryItemUI EquippedItem => _currentlyEquipped;
+
+    void Awake() => Instance = this;
 
     public void HandleEquip(OnEquipKeyEvent e)
     {
@@ -10,14 +16,55 @@ public class InventoryEquipHandler : MonoBehaviour
 
         InventoryItemUI target;
 
-        // Priority 1: WASD navigator cursor (controller / keyboard mode).
-        // Priority 2: mouse hover (mouse mode).
         if (InventoryNavigator.Instance != null && InventoryNavigator.Instance.IsNavigating)
             target = InventoryNavigator.Instance.GetCurrentItem();
         else
             target = InventoryItemUI.HoveredItem;
 
         if (target == null) return;
+
+        // ── Recarga instantánea al equipar munición compatible ────────────
+        if (target.Item is AmmoSO ammoItem)
+        {
+            var shooter = ShootController.Instance;
+            if (shooter != null
+                && shooter.CurrentWeapon != null
+                && shooter.CurrentWeapon.ammo == ammoItem
+                && shooter.CurrentMagazine < shooter.MaxMagazineSize)
+            {
+                bool isManual = shooter.CurrentWeapon.shotType == ShotType.Manual;
+
+                if (isManual)
+                {
+                    // 1 item del stack = 1 bala → consume lo que necesite hasta llenar
+                    int needed   = shooter.MaxMagazineSize - shooter.CurrentMagazine;
+                    int consumed = AmmoInventory.Consume(ammoItem, needed);
+                    if (consumed > 0)
+                    {
+                        shooter.AddAmmo(consumed);
+                        InventoryDragHandler.Instance?.ShowPopup(
+                            $"Loaded {consumed} rounds ({shooter.CurrentMagazine}/{shooter.MaxMagazineSize})"
+                        );
+                    }
+                }
+                else
+                {
+                    // 1 item del stack = cargador entero → consume exactamente 1
+                    int consumed = AmmoInventory.Consume(ammoItem, 1);
+                    if (consumed > 0)
+                    {
+                        shooter.AddAmmo(shooter.MaxMagazineSize); // llena el cargador
+                        InventoryDragHandler.Instance?.ShowPopup(
+                            $"Magazine loaded! ({shooter.CurrentMagazine}/{shooter.MaxMagazineSize})"
+                        );
+                    }
+                }
+            }
+            InventoryNavigator.Instance?.HandleEquip(e);
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         if (target.Item is not WeaponSO weapon) return;
 
         if (_currentlyEquipped != null && _currentlyEquipped != target)
@@ -26,9 +73,13 @@ public class InventoryEquipHandler : MonoBehaviour
         _currentlyEquipped = target;
         target.SetEquipped(true);
 
-        EventBus.Raise(new OnWeaponEquipEvent { weaponToEquip = weapon });
-        InventoryDragHandler.Instance?.ShowPopup($"{weapon.name} Equipped!");
+        EventBus.Raise(new OnWeaponEquipEvent
+        {
+            weaponToEquip = weapon,
+            initialAmmo   = target.StoredAmmo
+        });
 
+        InventoryDragHandler.Instance?.ShowPopup($"{weapon.name} Equipped!");
         InventoryNavigator.Instance?.HandleEquip(e);
     }
 }
