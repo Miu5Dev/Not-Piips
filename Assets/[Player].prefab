@@ -63,6 +63,7 @@ GameObject:
   - component: {fileID: 1101840330682616881}
   - component: {fileID: 421905502482132967}
   - component: {fileID: 8035707735414911129}
+  - component: {fileID: 5101683928852984508}
   m_Layer: 6
   m_Name: InventoryPanel
   m_TagString: Untagged
@@ -169,11 +170,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveCooldown: 0.12
+  mouseExitDelay: 0.3
   cursorNormal: {r: 0.5, g: 0.9, b: 1, a: 0.9}
   cursorDiscard: {r: 1, g: 0.5, b: 0.3, a: 0.9}
   highlightScale: 0.55
   gridUI: {fileID: 2280791389207800262}
   dragHandler: {fileID: 421905502482132967}
+--- !u!114 &5101683928852984508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 374534042500880949}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31b951c3f6d0d834bb4f15ae974c6938, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1336799570535633985
 GameObject:
   m_ObjectHideFlags: 0
@@ -228,6 +242,37 @@ MonoBehaviour:
   cellColor: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
   borderColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
   cellSpacing: 2
+--- !u!1 &1468102525640829953
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9150605140502340608}
+  m_Layer: 6
+  m_Name: '[Debug]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9150605140502340608
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468102525640829953}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8242796378219941989}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1888503969218581851
 GameObject:
   m_ObjectHideFlags: 0
@@ -759,6 +804,7 @@ GameObject:
   - component: {fileID: 526040697514364301}
   - component: {fileID: 7461044832683315571}
   - component: {fileID: 6381315267525103764}
+  - component: {fileID: 1158014891786339463}
   m_Layer: 6
   m_Name: '[InventorySystem]'
   m_TagString: Untagged
@@ -1016,6 +1062,42 @@ MonoBehaviour:
     conditions:
     - enabled: 1
       fieldName: Direction
+      op: 0
+      source: 2
+      compareValue: true
+      componentFieldName: activeSelf
+    logic: 0
+--- !u!114 &1158014891786339463
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5958344308944741347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnEquipKeyEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 5101683928852984508}
+    methodName: HandleEquip
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions:
+    - enabled: 1
+      fieldName: pressed
       op: 0
       source: 2
       compareValue: true
@@ -1734,6 +1816,7 @@ GameObject:
   - component: {fileID: 215124891838063108}
   - component: {fileID: 2635570421770336366}
   - component: {fileID: 5912869001865591104}
+  - component: {fileID: 4568557906976104629}
   m_Layer: 6
   m_Name: '[Player]'
   m_TagString: Untagged
@@ -1855,7 +1938,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a8895e9f21e6ed4da3e79afa28dd6dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentWeapon: {fileID: 11400000, guid: b198a0b1dd3a4a4439d4bab6becc88d2, type: 2}
+  currentWeapon: {fileID: 11400000, guid: 02c20b6b9c759894aa7a4820925288e0, type: 2}
   spawnpoint: {fileID: 3468381072937664653}
   hipFireDuration: 0.5
   shotSpawnDelay: 0.06
@@ -1895,6 +1978,36 @@ MonoBehaviour:
       componentMember: 
     conditions: []
     logic: 0
+--- !u!114 &4568557906976104629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884231642506751066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnWeaponEquipEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 2635570421770336366}
+    methodName: EquipWeapon
+    paramSources:
+    - mode: 0
+      eventFieldName: weaponToEquip
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!1 &8922952977007393192
 GameObject:
   m_ObjectHideFlags: 0
@@ -1927,5 +2040,6 @@ Transform:
   - {fileID: 1019371735714930344}
   - {fileID: 1865363083342972287}
   - {fileID: 5929699864204954832}
+  - {fileID: 9150605140502340608}
   m_Father: {fileID: 1696191593976069545}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

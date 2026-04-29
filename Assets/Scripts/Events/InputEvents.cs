@@ -74,3 +74,7 @@ public class OnPointerPositionEvent : InputEventBase
 {
     public Vector2 Position; // en píxeles, coordenadas de pantalla
 }
+
+public class OnEquipKeyEvent : InputEventBase
+{
+}
