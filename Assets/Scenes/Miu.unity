@@ -383,6 +383,16 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8782050542970856215, guid: cd0a953d7ee6f7e4c961141d5939acdd, type: 3}
   m_PrefabInstance: {fileID: 285337158}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &308567603 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3264799990878356036, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+  m_PrefabInstance: {fileID: 1811591490}
+  m_PrefabAsset: {fileID: 0}
+--- !u!223 &308567607 stripped
+Canvas:
+  m_CorrespondingSourceObject: {fileID: 8501439828291276898, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+  m_PrefabInstance: {fileID: 1811591490}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &386119847
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2607,6 +2617,78 @@ PrefabInstance:
     - target: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2019808960961735970, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: canvas
+      value: 
+      objectReference: {fileID: 308567607}
+    - target: {fileID: 4305076214427051074, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_UiScaleMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4305076214427051074, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_ReferenceResolution.x
+      value: 1920
+      objectReference: {fileID: 0}
+    - target: {fileID: 4305076214427051074, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_ReferenceResolution.y
+      value: 1080
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].methodName
+      value: SetActive
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].targetObject
+      value: 
+      objectReference: {fileID: 308567603}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].conditions.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[0].mode
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[1].mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[2].mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].conditions.Array.data[0].enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].conditions.Array.data[0].fieldName
+      value: pressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].conditions.Array.data[0].compareValue
+      value: true
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[0].fixedValue
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[0].eventFieldName
+      value: pressed
+      objectReference: {fileID: 0}
+    - target: {fileID: 6785309993664213856, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: smartBindings.Array.data[3].paramSources.Array.data[0].componentMember
+      value: activeSelf
       objectReference: {fileID: 0}
     - target: {fileID: 8884231642506751066, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_Name
