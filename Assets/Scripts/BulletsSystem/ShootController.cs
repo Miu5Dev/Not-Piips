@@ -15,7 +15,7 @@ public class ShootController : MonoBehaviour
     [SerializeField] private WeaponSO currentWeapon;
     [SerializeField] private Transform spawnpoint;
     [SerializeField] private float hipFireDuration = 0.2f;
-    [SerializeField] private float shotSpawnDelay  = 0.06f;
+    [SerializeField] private float shotSpawnDelay = 0.06f;
 
     [SerializeField] private AimTargetController aimTarget;
 
@@ -31,33 +31,36 @@ public class ShootController : MonoBehaviour
                 InventoryGridUI.Instance?.RefreshWeaponAmmoLabels();
         }
     }
-    private bool  _isReloading;
+    private bool _isReloading;
 
     private float _hipFireTimer;
-    private bool  _isHipFiring;
+    private bool _isHipFiring;
     private float _lastShotTime;
-    private bool  _isFireHeld;
-    private bool  _canSemiAutoShootAgain = true;
+    private bool _isFireHeld;
+    private bool _canSemiAutoShootAgain = true;
 
-    private WaitForSeconds             _waitForDelay;
+    private WaitForSeconds _waitForDelay;
     private OnHipFireStateChangedEvent _hipFireOn;
     private OnHipFireStateChangedEvent _hipFireOff;
 
-    public int  CurrentMagazine => _currentMagazine;
-    public int  MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
-    public bool IsReloading     => _isReloading;
+    public int CurrentMagazine => _currentMagazine;
+    public int MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
+    public bool IsReloading => _isReloading;
     public bool IsMagazineEmpty => _currentMagazine <= 0;
     public WeaponSO CurrentWeapon => currentWeapon;
 
-    /// <summary>Lets EnemyController set the muzzle transform at runtime.</summary>
+    /// Lets EnemyController set the muzzle transform at runtime.
     public void SetSpawnPoint(Transform t) => spawnpoint = t;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     private void Awake()
     {
-        if (IsPlayerController) Instance = this;
+        if (IsPlayerController && (Instance == null || Instance == this))
+            Instance = this;
 
         _waitForDelay = new WaitForSeconds(shotSpawnDelay);
-        _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
+        _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true };
         _hipFireOff = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
 
         if (currentWeapon != null)
@@ -73,18 +76,20 @@ public class ShootController : MonoBehaviour
             TryShoot();
     }
 
-    // ── Equip ─────────────────────────────────────────────────────────────
+    // ── Equip ─────────────────────────────────────────────────────────────────
+
     // initialAmmo = -1 → usar maxMagazineSize (comportamiento original)
     public void EquipWeapon(WeaponSO weapon, int initialAmmo = -1)
     {
-        currentWeapon    = weapon;
+        currentWeapon = weapon;
         _currentMagazine = (weapon != null && initialAmmo >= 0)
             ? initialAmmo
             : (weapon != null ? weapon.maxMagazineSize : 0);
         _isReloading = false;
     }
 
-    // ── Fire input ────────────────────────────────────────────────────────
+    // ── Fire input ────────────────────────────────────────────────────────────
+
     public void OnFirePressed()
     {
         _isFireHeld = true;
@@ -108,11 +113,12 @@ public class ShootController : MonoBehaviour
 
     public void OnFireReleased()
     {
-        _isFireHeld            = false;
+        _isFireHeld = false;
         _canSemiAutoShootAgain = true;
     }
 
-    // ── Core shoot logic ──────────────────────────────────────────────────
+    // ── Core shoot logic ──────────────────────────────────────────────────────
+
     private void TryShoot()
     {
         if (currentWeapon == null || currentWeapon.ammo == null) return;
@@ -134,7 +140,7 @@ public class ShootController : MonoBehaviour
             ? aimTarget.AimPoint
             : spawnpoint.position + spawnpoint.forward * 100f;
 
-        Vector3    baseDir = (aimPoint - spawnpoint.position).normalized;
+        Vector3 baseDir = (aimPoint - spawnpoint.position).normalized;
         Quaternion baseRot = baseDir != Vector3.zero
             ? Quaternion.LookRotation(baseDir)
             : spawnpoint.rotation;
@@ -163,12 +169,14 @@ public class ShootController : MonoBehaviour
             currentWeapon.damage,
             currentWeapon.ammo.speed,
             currentWeapon.ammo.gravityForce,
-            currentWeapon.ammo.decalPrefab
+            currentWeapon.ammo.decalPrefab,
+            currentWeapon.ammo.decalLayers,
+            currentWeapon.ammo.impactVFXPrefab
         );
     }
 
-    // ── Reload ────────────────────────────────────────────────────────────
-// ── Reload ────────────────────────────────────────────────────────────────
+    // ── Reload ────────────────────────────────────────────────────────────────
+
     public void Reload()
     {
         if (_isReloading) return;
@@ -215,7 +223,8 @@ public class ShootController : MonoBehaviour
         _isReloading = false;
     }
 
-    // ── Spread & Hip fire ─────────────────────────────────────────────────
+    // ── Spread & Hip fire ─────────────────────────────────────────────────────
+
     private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle, bool horizontalOnly)
     {
         if (horizontalOnly)
@@ -226,7 +235,7 @@ public class ShootController : MonoBehaviour
         Vector2 spread = Random.insideUnitCircle * spreadAngle;
         return baseRotation * Quaternion.Euler(spread.y, spread.x, 0f);
     }
-    
+
     private void StartHipFire()
     {
         _hipFireTimer = hipFireDuration;
@@ -248,7 +257,9 @@ public class ShootController : MonoBehaviour
             EventBus.Raise(_hipFireOff);
         }
     }
-    
+
+    // ── Ammo ──────────────────────────────────────────────────────────────────
+
     public void AddAmmo(int amount)
     {
         _currentMagazine = Mathf.Min(_currentMagazine + amount, currentWeapon.maxMagazineSize);
