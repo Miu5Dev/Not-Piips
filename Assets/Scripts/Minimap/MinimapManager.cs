@@ -13,6 +13,8 @@ public class MinimapManager : MonoBehaviour
     [Tooltip("Camera whose yaw rotates the minimap. Usually the main camera.")]
     [SerializeField] private Transform cameraTransform;
 
+    [SerializeField] private Canvas canvas;
+
     [Header("World")]
     [Tooltip("World-unit radius visible on the minimap.")]
     [SerializeField] private float minimapWorldRadius = 60f;
@@ -53,8 +55,9 @@ public class MinimapManager : MonoBehaviour
 
     private void BuildUI()
     {
-        Canvas canvas = FindOrCreateOverlayCanvas();
-
+        if(canvas==null)
+        canvas = FindOrCreateOverlayCanvas();
+        
         // Root — anchored to top-right corner
         var rootGo = new GameObject("MinimapRoot");
         rootGo.transform.SetParent(canvas.transform, false);
