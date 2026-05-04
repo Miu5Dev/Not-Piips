@@ -1429,6 +1429,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 4862838868547469315}
   cameraTransform: {fileID: 888260736053150557}
+  canvas: {fileID: 0}
   minimapWorldRadius: 20
   playerDotSize: 2
   enemyDotSize: 2
@@ -1914,9 +1915,10 @@ GameObject:
   - component: {fileID: 2635570421770336366}
   - component: {fileID: 5912869001865591104}
   - component: {fileID: 4568557906976104629}
+  - component: {fileID: 4080737858571906213}
   m_Layer: 6
   m_Name: '[Player]'
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2111,6 +2113,31 @@ MonoBehaviour:
       componentMember: 
     conditions: []
     logic: 0
+--- !u!114 &4080737858571906213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8884231642506751066}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fd3b89a53c62ac4989087a18f8919c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsFolder: Scripts/Events
+  selectedEventTypeName: OnPlayerSpawnEvent
+  paramValues:
+  - fieldName: Player_Enemies_Target
+    value: 
+    objectRef: {fileID: 4862838868547469315}
+  - fieldName: player
+    value: 
+    objectRef: {fileID: 8884231642506751066}
+  raiseOnAwake: 0
+  raiseOnStart: 0
+  raiseOnEnable: 1
+  raiseOnDisable: 0
 --- !u!1 &8922952977007393192
 GameObject:
   m_ObjectHideFlags: 0

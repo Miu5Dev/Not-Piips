@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"G:\\\\Unity\\\\Not-Piips\\\\Assets\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"G:\\\\Unity\\\\Not-Piips\\\\Assets\\\\Scripts\" -Directory | ForEach-Object { Write-Host $_.Name }; Get-ChildItem -Path \"G:\\\\Unity\\\\Not-Piips\\\\Assets\\\\Resources\" -Directory | ForEach-Object { Write-Host \"Resources: $_\" })"
+    ]
+  }
+}
