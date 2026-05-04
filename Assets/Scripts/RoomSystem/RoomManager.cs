@@ -59,13 +59,11 @@ public class RoomManager : MonoBehaviour
             return;
         }
 
-        // Seal the door that triggered this so it can't be opened again
         activeDoor.SetState(DoorState.Sealed);
 
-        RoomController prefab  = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
+        RoomController prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         RoomController newRoom = Instantiate(prefab);
 
-        // Pick a random door on the new room as the entry point
         DoorController entryDoor = newRoom.GetRandomDoor();
         if (entryDoor == null)
         {
@@ -77,21 +75,22 @@ public class RoomManager : MonoBehaviour
         AlignRoom(newRoom, activeDoor.transform, entryDoor);
         newRoom.Initialize(isStartRoom: false, playerTransform, entryDoor);
 
-// Sync physics so the newly-positioned room's colliders are queryable,
-// then cut holes in all door walls in the same frame.
         Physics.SyncTransforms();
         newRoom.CutAllDoorWalls();
 
-// Re-cut the active door's wall now that the new room is in place beside it.
         activeDoor.ResetCut();
         activeDoor.CutWallNow();
 
         _loadedRooms.Add(newRoom);
 
-        // Keep only 2 rooms — destroy the oldest once a third is loaded
         if (_loadedRooms.Count > 2)
         {
-            Destroy(_loadedRooms[0].gameObject);
+            RoomController oldRoom = _loadedRooms[0];
+
+            // Close all doors in the old room before destroying it
+            foreach (var door in oldRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
+                door.CloseAndThen(() => Destroy(oldRoom.gameObject));
+
             _loadedRooms.RemoveAt(0);
         }
     }
@@ -104,13 +103,18 @@ public class RoomManager : MonoBehaviour
     // with the two doors facing each other.
     private static void AlignRoom(RoomController newRoom, Transform activeDoor, DoorController entryDoor)
     {
-        // 1. Rotate newRoom so entryDoor.forward == -activeDoor.forward (faces back toward origin room)
-        newRoom.transform.rotation = Quaternion.LookRotation(-activeDoor.forward, Vector3.up)
-                                     * Quaternion.Inverse(entryDoor.transform.localRotation);
+        Transform doorTransform = entryDoor.transform;
+        Transform roomRoot = newRoom.transform;
 
-        // 2. Translate newRoom so entryDoor lands exactly on activeDoor
-        //    (rotation is set first so entryDoor.position reflects the new orientation)
-        newRoom.transform.position += activeDoor.position - entryDoor.transform.position;
+        // Get the door's rotation relative to the room root (not just its immediate parent)
+        Quaternion doorLocalToRoom = Quaternion.Inverse(roomRoot.rotation) * doorTransform.rotation;
+
+        // Rotate room so entryDoor.forward faces -activeDoor.forward
+        roomRoot.rotation = Quaternion.LookRotation(-activeDoor.forward, Vector3.up)
+                            * Quaternion.Inverse(doorLocalToRoom);
+
+        // Translate room so entryDoor lands exactly on activeDoor
+        roomRoot.position += activeDoor.position - doorTransform.position;
     }
 
     // =========================================================

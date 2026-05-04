@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -28,6 +29,14 @@ public class DoorController : MonoBehaviour
     [SerializeField] private GameObject unlockedVisual;
     [SerializeField] private GameObject sealedVisual;
 
+    [Header("Animation")]
+    [Tooltip("Animator on the door mesh. Leave null if not using animations.")]
+    [SerializeField] private Animator doorAnimator;
+    [Tooltip("How long to wait for the open animation before disabling the door.")]
+    [SerializeField] private float openAnimationDuration = 0.6f;
+    [Tooltip("How long to wait for the close animation before the room is destroyed.")]
+    [SerializeField] private float closeAnimationDuration = 0.6f;
+
     private DoorState _state = DoorState.Locked;
     private bool _used;
     private bool _wallCut;
@@ -41,12 +50,6 @@ public class DoorController : MonoBehaviour
     // Start() handles standalone doors already in the scene.
     // Spawned room doors are cut explicitly by RoomManager via CutWallNow().
     private void Start() => CutWallNow();
-    
-    public void ResetCut()
-    {
-        _wallCut = false;
-        wallToCut = null;
-    }
 
     // =========================================================
     // WALL CUTTING (public so RoomManager can call it in the same frame)
@@ -65,6 +68,12 @@ public class DoorController : MonoBehaviour
             Debug.LogWarning($"[DoorController] '{name}': no wall found. Assign Wall To Cut manually or add a Collider to the wall.");
     }
 
+    public void ResetCut()
+    {
+        _wallCut = false;
+        wallToCut = null;
+    }
+
     // =========================================================
     // CALLED BY Interactable → On Use
     // =========================================================
@@ -74,11 +83,8 @@ public class DoorController : MonoBehaviour
         if (_used || _state != DoorState.Unlocked) return;
         _used = true;
 
-        // OpenNextRoom must run while the door is still active (it reads our transform).
-        // SetActive(false) fires OnTriggerExit so the Interactor removes this door from
-        // its candidate list immediately — preventing it from blocking interaction in the new room.
         RoomManager.Instance?.OpenNextRoom(this);
-        gameObject.SetActive(false);
+        StartCoroutine(PlayOpenAnimation()); // no SetActive(false) here anymore
     }
 
     // =========================================================
@@ -95,13 +101,42 @@ public class DoorController : MonoBehaviour
 
     /// <summary>
     /// Removes this door object so the player can walk through the wall hole.
-    /// Uses SetActive(false) so OnTriggerExit fires and the Interactor cleans up its candidate list.
-    /// CutWallNow() can still be called on an inactive object — Unity only blocks lifecycle messages,
-    /// not direct method calls — so CutAllDoorWalls() works correctly after this.
+    /// Called on the entry door of a newly spawned room — player never sees this side.
     /// </summary>
     public void ClearBlocker()
     {
         gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Plays the close animation and then invokes the callback (used by RoomManager
+    /// to delay room destruction until the door has visually closed).
+    /// </summary>
+    public void CloseAndThen(Action onComplete)
+    {
+        StartCoroutine(PlayCloseAnimation(onComplete));
+    }
+
+    // =========================================================
+    // ANIMATIONS
+    // =========================================================
+
+    private IEnumerator PlayOpenAnimation()
+    {
+        if (doorAnimator != null)
+            doorAnimator.SetTrigger("Open");
+
+        // Don't disable — let CloseAndThen() handle it when the room is destroyed
+        yield break;
+    }
+
+    private IEnumerator PlayCloseAnimation(Action onComplete)
+    {
+        if (doorAnimator != null)
+            doorAnimator.SetTrigger("Close");
+
+        yield return new WaitForSeconds(closeAnimationDuration);
+        onComplete?.Invoke();
     }
 
     // =========================================================
@@ -111,9 +146,6 @@ public class DoorController : MonoBehaviour
     private MeshFilter FindWall()
     {
         // ── Pass 1: overlap check ────────────────────────────────────────────
-        // The door cube sits inside the wall opening, so the wall collider
-        // typically overlaps the door's own bounds. Grab it directly.
-        // Skips walls belonging to the same room prefab root as this door.
         var selfCol = GetComponent<Collider>();
         if (selfCol != null)
         {
@@ -123,7 +155,7 @@ public class DoorController : MonoBehaviour
             {
                 if (c.transform == transform) continue;
                 if (c.transform.IsChildOf(transform)) continue;
-                if (c.transform.IsChildOf(transform.root)) continue; // skip walls in the same room
+                if (c.transform.IsChildOf(transform.root)) continue;
                 if (!c.CompareTag("Wall")) continue;
                 var mf = c.GetComponent<MeshFilter>() ?? c.GetComponentInParent<MeshFilter>();
                 if (mf != null) return mf;
@@ -131,8 +163,6 @@ public class DoorController : MonoBehaviour
         }
 
         // ── Pass 2: directional raycast fallback ─────────────────────────────
-        // Used when the wall and door don't physically overlap (gap between them).
-        // Start slightly in front so the ray origin is outside any wall collider.
         Vector3 rayOrigin = transform.position + transform.forward * 0.2f;
         RaycastHit[] hits = Physics.RaycastAll(rayOrigin, -transform.forward, wallDetectDistance + 0.2f);
         Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
@@ -140,7 +170,7 @@ public class DoorController : MonoBehaviour
         {
             if (hit.collider.transform == transform) continue;
             if (hit.collider.transform.IsChildOf(transform)) continue;
-            if (hit.collider.transform.IsChildOf(transform.root)) continue; // skip walls in the same room
+            if (hit.collider.transform.IsChildOf(transform.root)) continue;
             if (!hit.collider.CompareTag("Wall")) continue;
             var mf = hit.collider.GetComponent<MeshFilter>() ?? hit.collider.GetComponentInParent<MeshFilter>();
             if (mf != null) return mf;
@@ -161,24 +191,20 @@ public class DoorController : MonoBehaviour
         Bounds wb = src.bounds;
         Vector3 sz = wb.size;
 
-        // ── Find the depth axis (thinnest dimension of the wall) ──
         int dAxis = 0;
         if (sz.y < sz[dAxis]) dAxis = 1;
         if (sz.z < sz[dAxis]) dAxis = 2;
 
-        // ── Find height axis (local axis most aligned with world up) ──
         Vector3 localUp = wallFilter.transform.InverseTransformDirection(Vector3.up);
         float[] ua = { Mathf.Abs(localUp.x), Mathf.Abs(localUp.y), Mathf.Abs(localUp.z) };
-        ua[dAxis] = -1f; // exclude the depth axis from consideration
+        ua[dAxis] = -1f;
         int hAxis = ua[0] >= ua[1] && ua[0] >= ua[2] ? 0 : ua[1] >= ua[2] ? 1 : 2;
-        int wAxis = 3 - dAxis - hAxis; // the remaining axis is width
+        int wAxis = 3 - dAxis - hAxis;
 
-        // ── Wall face extents in wall local space ──
         float wMin = wb.min[wAxis], wMax = wb.max[wAxis];
         float hMin = wb.min[hAxis], hMax = wb.max[hAxis];
         float dMid = wb.center[dAxis];
 
-        // ── Door position and hole size in wall local space ──
         Vector3 doorLocal = wallFilter.transform.InverseTransformPoint(transform.position);
         Vector2 hole = holeSizeOverride != Vector2.zero
             ? holeSizeOverride
@@ -192,20 +218,38 @@ public class DoorController : MonoBehaviour
         Mesh frame = BuildFrame(wMin, wMax, hMin, hMax, hWMin, hWMax, hHMin, hHMax,
             dMid, dAxis, wAxis, hAxis);
 
-        // Apply to visual mesh
+        // ── Flip winding if the mesh normal points away from the door ──
+        // The door's forward points OUTWARD from the room, so the wall normal
+        // should point in the same general direction as the door's forward.
+        Vector3 meshNormal = wallFilter.transform.TransformDirection(frame.normals[0]);
+        if (Vector3.Dot(meshNormal, transform.forward) < 0f)
+            FlipNormals(frame);
+
         wallFilter.mesh = frame;
 
-        // Update MeshCollider — null-then-assign forces Unity to rebuild the physics mesh
         var mc = wallFilter.GetComponent<MeshCollider>();
         if (mc != null)
         {
-            mc.convex = false; // non-convex required for holes
+            mc.convex = false;
             mc.sharedMesh = null;
             mc.sharedMesh = frame;
         }
     }
 
-    // Auto-measure hole from this door object's renderer or collider bounds
+    private static void FlipNormals(Mesh mesh)
+    {
+        // Reverse triangle winding order
+        int[] tris = mesh.triangles;
+        for (int i = 0; i < tris.Length; i += 3)
+        {
+            int tmp = tris[i];
+            tris[i] = tris[i + 2];
+            tris[i + 2] = tmp;
+        }
+        mesh.triangles = tris;
+        mesh.RecalculateNormals();
+    }
+
     private Vector2 AutoHoleSize(Transform wallTransform, int wAxis, int hAxis)
     {
         Bounds? b = null;
@@ -221,11 +265,9 @@ public class DoorController : MonoBehaviour
             if (w > 0.05f && h > 0.05f) return new Vector2(w, h);
         }
 
-        return new Vector2(2f, 3f); // fallback: standard door size
+        return new Vector2(2f, 3f);
     }
 
-    // Build a rectangular frame mesh (wall minus the rectangular hole).
-    // Made of 4 quads: bottom strip, top strip, left strip, right strip.
     private static Mesh BuildFrame(
         float wMin, float wMax, float hMin, float hMax,
         float hWMin, float hWMax, float hHMin, float hHMax,
@@ -255,10 +297,10 @@ public class DoorController : MonoBehaviour
             tris[ti++] = b; tris[ti++] = b + 2; tris[ti++] = b + 3;
         }
 
-        Quad(wMin,  hMin,  wMax,  hHMin); // bottom strip (full width, below hole)
-        Quad(wMin,  hHMax, wMax,  hMax);  // top strip    (full width, above hole)
-        Quad(wMin,  hHMin, hWMin, hHMax); // left strip   (between hole heights)
-        Quad(hWMax, hHMin, wMax,  hHMax); // right strip  (between hole heights)
+        Quad(wMin,  hMin,  wMax,  hHMin);
+        Quad(wMin,  hHMax, wMax,  hMax);
+        Quad(wMin,  hHMin, hWMin, hHMax);
+        Quad(hWMax, hHMin, wMax,  hHMax);
 
         var mesh = new Mesh { name = "WallWithHole" };
         mesh.vertices  = verts;
@@ -297,12 +339,10 @@ public class DoorController : MonoBehaviour
         var col = GetComponent<Collider>();
         if (col != null) Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
 
-        // Forward arrow shows outward direction used for wall detection
         Gizmos.color = Color.cyan;
         Gizmos.DrawRay(transform.position, transform.forward * wallDetectDistance);
     }
 #endif
 }
-
 
 public enum DoorState { Unlocked, Locked, Sealed }
