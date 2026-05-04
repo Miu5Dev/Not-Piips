@@ -2,8 +2,8 @@ using UnityEngine;
 
 [CreateAssetMenu(
     fileName = "New Ammo",
-    menuName  = "Objects/Ammo",
-    order     = 0)]
+    menuName = "Objects/Ammo",
+    order = 0)]
 public class AmmoSO : itemSO
 {
     [Header("Stats")]
@@ -16,4 +16,11 @@ public class AmmoSO : itemSO
     [Header("Decal")]
     [Tooltip("Prefab spawned on the surface when the bullet hits.\nCan be a URP DecalProjector or a simple quad with a sprite material.")]
     public GameObject decalPrefab;
+
+    [Tooltip("Layers on which bullet decals are allowed to spawn.")]
+    public LayerMask decalLayers = ~0; // default: all layers
+
+    [Header("Impact VFX")]
+    [Tooltip("Particle System GameObject spawned at the impact point.")]
+    public GameObject impactVFXPrefab;
 }
