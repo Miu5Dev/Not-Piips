@@ -87,10 +87,15 @@ public class RoomManager : MonoBehaviour
         {
             RoomController oldRoom = _loadedRooms[0];
 
-            // Close all doors in the old room before destroying it
+            // Detach all doors from the old room so they survive the Destroy
+            // and can finish their close animation on their own
             foreach (var door in oldRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
-                door.CloseAndThen(() => Destroy(oldRoom.gameObject));
+            {
+                door.transform.SetParent(null);
+                door.CloseAndThen(() => Destroy(door.gameObject));
+            }
 
+            Destroy(oldRoom.gameObject);
             _loadedRooms.RemoveAt(0);
         }
     }
