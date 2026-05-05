@@ -201,7 +201,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1663540614112922739, guid: 2dbb71d81d4d7bd46b1ecaec0fb922dc, type: 3}
       propertyPath: m_Name
-      value: RoomPreefab1
+      value: StartingArea
       objectReference: {fileID: 0}
     - target: {fileID: 5126072244945118750, guid: 2dbb71d81d4d7bd46b1ecaec0fb922dc, type: 3}
       propertyPath: m_LocalPosition.x
