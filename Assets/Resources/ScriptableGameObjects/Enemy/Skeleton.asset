@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9ce1368324314440a733aaf5368c631, type: 3}
+  m_Name: Skeleton
+  m_EditorClassIdentifier: 
+  maxHealth: 100
+  maxShield: 0
+  moveSpeed: 3.5
+  fromPlayerMin: 7
+  fromPlayerMax: 14
+  wanderFrequency: 0.8
+  lateralStrength: 2.5
+  aiLodDistance: 80
+  availableWeapons:
+  - {fileID: 11400000, guid: d5744b47729e0f64ea00e5ff03f5edcc, type: 2}
+  shootBuffer: 1
+  prefab: {fileID: 5136934130089953423, guid: b6fd4c18ff308994b8efb25945ec8227, type: 3}
+  poolSize: 3
+  deathEffect: {fileID: 8996121115574778785, guid: 8cf1010686a94eb458fcba5e250b987c, type: 3}
+  freezeOnDeath: 1

@@ -5,22 +5,19 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Interactor : MonoBehaviour
 {
-    // The closest valid interactable — always up to date
-    public bool        onInteractArea   => interactableScript != null;
-    public GameObject  interactObject   { get; private set; }
-    public Interactable interactableScript { get; private set; }
+    [Header("Runtime Debug")]
+    [SerializeField] private bool onInteractArea;
+    [SerializeField] private GameObject interactObject;
+    [SerializeField] private Interactable interactableScript;
 
-    // All interactables currently inside the trigger volume
     private readonly List<Interactable> _candidates = new();
 
-    // ── Interact ─────────────────────────────────────────────────────────────
     public void Interact()
     {
         if (!onInteractArea) return;
         interactableScript.Use();
     }
 
-    // ── Trigger events ────────────────────────────────────────────────────────
     private void OnTriggerEnter(Collider other)
     {
         var interactable = other.GetComponent<Interactable>();
@@ -35,14 +32,12 @@ public class Interactor : MonoBehaviour
             _candidates.Remove(interactable);
     }
 
-    // ── Update: pick the closest valid candidate ──────────────────────────────
     private void Update()
     {
         CleanCandidates();
         PickClosest();
     }
 
-    // Remove destroyed or disabled interactables from the list
     private void CleanCandidates()
     {
         for (int i = _candidates.Count - 1; i >= 0; i--)
@@ -53,11 +48,10 @@ public class Interactor : MonoBehaviour
         }
     }
 
-    // Select the interactable whose transform is closest to this transform
     private void PickClosest()
     {
-        Interactable closest  = null;
-        float        bestDist = float.MaxValue;
+        Interactable closest = null;
+        float bestDist = float.MaxValue;
 
         foreach (var candidate in _candidates)
         {
@@ -65,11 +59,12 @@ public class Interactor : MonoBehaviour
             if (dist < bestDist)
             {
                 bestDist = dist;
-                closest  = candidate;
+                closest = candidate;
             }
         }
 
         interactableScript = closest;
-        interactObject     = closest != null ? closest.gameObject : null;
+        interactObject = closest != null ? closest.gameObject : null;
+        onInteractArea = closest != null;
     }
 }

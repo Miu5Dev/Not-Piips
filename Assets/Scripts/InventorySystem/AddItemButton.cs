@@ -3,15 +3,15 @@ using UnityEngine;
 public class AddItemButton : MonoBehaviour
 {
     [SerializeField] itemSO item;
-
-    void Update()
+    
+    // Public so other scripts can call this directly to add the item
+    public void AddItem()
     {
-        if (Input.GetKeyDown(KeyCode.P))
+        if (InventoryGridUI.Instance == null) return;
+        bool added = InventoryGridUI.Instance.TryAddItem(item);
+        if (added)
         {
-            if (InventoryGridUI.Instance == null) return;
-
-            if (!InventoryGridUI.Instance.TryAddItem(item))
-                Debug.Log($"Inventory full — could not place {item.name}");
+            Destroy(this.gameObject);
         }
     }
 }

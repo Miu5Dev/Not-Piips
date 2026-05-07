@@ -20,5 +20,23 @@ public class OpenIventory : MonoBehaviour
     {
         if (e.pressed)
             gameObject.SetActive(!gameObject.activeSelf);
+        
+        if (!gameObject.activeSelf)
+            LockMouse();
+        else
+            UnlockMouse();
     }
+
+    public void UnlockMouse()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void LockMouse()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
 }

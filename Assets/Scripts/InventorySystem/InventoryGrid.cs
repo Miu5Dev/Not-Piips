@@ -12,27 +12,35 @@ public class InventoryGrid
         _occupied = new bool[cols, rows];
     }
 
-    // Returns false if no space. On success marks cells occupied.
     public bool TryAdd(Vector2Int size, out Vector2Int origin, out bool rotated)
     {
-        if (TryFind(size.x, size.y, out origin))
+        if (size.x <= 0 || size.y <= 0)
         {
-            rotated = false;
-            Mark(origin, size.x, size.y, true);
-            return true;
+            Debug.LogWarning($"[Inventory] Item has invalid size {size} — set a size > 0 on the itemSO.");
+            origin = Vector2Int.zero; rotated = false; return false;
         }
 
-        // Try rotated (only if not square)
-        if (size.x != size.y && TryFind(size.y, size.x, out origin))
-        {
-            rotated = true;
-            Mark(origin, size.y, size.x, true);
-            return true;
-        }
+        if (TryFind(size.x, size.y, out origin)) { rotated = false; Mark(origin, size.x, size.y, true); return true; }
+        if (size.x != size.y && TryFind(size.y, size.x, out origin)) { rotated = true; Mark(origin, size.y, size.x, true); return true; }
 
-        origin  = Vector2Int.zero;
-        rotated = false;
-        return false;
+        origin = Vector2Int.zero; rotated = false; return false;
+    }
+
+    // Read-only check — does not modify state
+    public bool CanFit(Vector2Int size, Vector2Int origin, bool rotated)
+    {
+        int w = rotated ? size.y : size.x;
+        int h = rotated ? size.x : size.y;
+        if (origin.x < 0 || origin.y < 0 || origin.x + w > _cols || origin.y + h > _rows) return false;
+        return Fits(origin.x, origin.y, w, h);
+    }
+
+    // Place without searching — caller already validated
+    public void ForcePlace(Vector2Int size, Vector2Int origin, bool rotated)
+    {
+        int w = rotated ? size.y : size.x;
+        int h = rotated ? size.x : size.y;
+        Mark(origin, w, h, true);
     }
 
     public void Remove(Vector2Int origin, Vector2Int size, bool rotated)
@@ -47,8 +55,7 @@ public class InventoryGrid
         for (int row = 0; row <= _rows - h; row++)
             for (int col = 0; col <= _cols - w; col++)
                 if (Fits(col, row, w, h)) { origin = new Vector2Int(col, row); return true; }
-        origin = Vector2Int.zero;
-        return false;
+        origin = Vector2Int.zero; return false;
     }
 
     bool Fits(int col, int row, int w, int h)

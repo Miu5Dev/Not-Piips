@@ -4,28 +4,67 @@ using Random = UnityEngine.Random;
 
 public class ShootController : MonoBehaviour
 {
-    [SerializeField] private WeaponSO  currentWeapon;
+    public static ShootController Instance { get; private set; }
+
+    /// <summary>
+    /// False when this component belongs to an enemy.
+    /// Skips singleton registration, UI refresh, and inventory-gated reload.
+    /// </summary>
+    public bool IsPlayerController { get; set; } = true;
+
+    [SerializeField] private WeaponSO currentWeapon;
     [SerializeField] private Transform spawnpoint;
-    [SerializeField] private float     hipFireDuration = 0.2f;
-    [SerializeField] private float     shotSpawnDelay  = 0.06f;
+    [SerializeField] private float hipFireDuration = 0.2f;
+    [SerializeField] private float shotSpawnDelay = 0.06f;
 
     [SerializeField] private AimTargetController aimTarget;
 
-    private float hipFireTimer;
-    private bool  isHipFiring;
-    private float lastShotTime;
-    private bool  isFireHeld;
-    private bool  canSemiAutoShootAgain = true;
+    [SerializeField] private int _currentMagazineField;
+    private int _currentMagazine
+    {
+        get => _currentMagazineField;
+        set
+        {
+            if (_currentMagazineField == value) return;
+            _currentMagazineField = value;
+            if (IsPlayerController)
+                InventoryGridUI.Instance?.RefreshWeaponAmmoLabels();
+        }
+    }
+    private bool _isReloading;
 
-    private WaitForSeconds             _waitForDelay;
+    private float _hipFireTimer;
+    private bool _isHipFiring;
+    private float _lastShotTime;
+    private bool _isFireHeld;
+    private bool _canSemiAutoShootAgain = true;
+
+    private WaitForSeconds _waitForDelay;
     private OnHipFireStateChangedEvent _hipFireOn;
     private OnHipFireStateChangedEvent _hipFireOff;
 
+    public int CurrentMagazine => _currentMagazine;
+    public int MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
+    public bool IsReloading => _isReloading;
+    public bool IsMagazineEmpty => _currentMagazine <= 0;
+    public WeaponSO CurrentWeapon => currentWeapon;
+
+    /// Lets EnemyController set the muzzle transform at runtime.
+    public void SetSpawnPoint(Transform t) => spawnpoint = t;
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
     private void Awake()
     {
+        if (IsPlayerController && (Instance == null || Instance == this))
+            Instance = this;
+
         _waitForDelay = new WaitForSeconds(shotSpawnDelay);
-        _hipFireOn    = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
-        _hipFireOff   = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+        _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true };
+        _hipFireOff = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+
+        if (currentWeapon != null)
+            _currentMagazine = currentWeapon.maxMagazineSize;
     }
 
     private void Update()
@@ -33,22 +72,36 @@ public class ShootController : MonoBehaviour
         HandleHipFireTimer();
 
         if (currentWeapon == null || currentWeapon.ammo == null) return;
-        if (currentWeapon.shotType == ShotType.Automatic && isFireHeld)
+        if (currentWeapon.shotType == ShotType.Automatic && _isFireHeld)
             TryShoot();
     }
 
+    // ── Equip ─────────────────────────────────────────────────────────────────
+
+    // initialAmmo = -1 → usar maxMagazineSize (comportamiento original)
+    public void EquipWeapon(WeaponSO weapon, int initialAmmo = -1)
+    {
+        currentWeapon = weapon;
+        _currentMagazine = (weapon != null && initialAmmo >= 0)
+            ? initialAmmo
+            : (weapon != null ? weapon.maxMagazineSize : 0);
+        _isReloading = false;
+    }
+
+    // ── Fire input ────────────────────────────────────────────────────────────
+
     public void OnFirePressed()
     {
-        isFireHeld = true;
+        _isFireHeld = true;
 
         switch (currentWeapon != null ? currentWeapon.shotType : ShotType.SemiAutomatic)
         {
             case ShotType.SemiAutomatic:
             case ShotType.Manual:
-                if (canSemiAutoShootAgain)
+                if (_canSemiAutoShootAgain)
                 {
                     TryShoot();
-                    canSemiAutoShootAgain = false;
+                    _canSemiAutoShootAgain = false;
                 }
                 break;
 
@@ -60,16 +113,21 @@ public class ShootController : MonoBehaviour
 
     public void OnFireReleased()
     {
-        isFireHeld            = false;
-        canSemiAutoShootAgain = true;
+        _isFireHeld = false;
+        _canSemiAutoShootAgain = true;
     }
+
+    // ── Core shoot logic ──────────────────────────────────────────────────────
 
     private void TryShoot()
     {
         if (currentWeapon == null || currentWeapon.ammo == null) return;
-        if (Time.time < lastShotTime + (1f / currentWeapon.fireRate)) return;
+        if (_isReloading) return;
+        if (_currentMagazine <= 0) return;
+        if (Time.time < _lastShotTime + (1f / currentWeapon.fireRate)) return;
 
-        lastShotTime = Time.time;
+        _currentMagazine--;
+        _lastShotTime = Time.time;
         StartHipFire();
         StartCoroutine(FireAfterDelay());
     }
@@ -82,7 +140,7 @@ public class ShootController : MonoBehaviour
             ? aimTarget.AimPoint
             : spawnpoint.position + spawnpoint.forward * 100f;
 
-        Vector3    baseDir = (aimPoint - spawnpoint.position).normalized;
+        Vector3 baseDir = (aimPoint - spawnpoint.position).normalized;
         Quaternion baseRot = baseDir != Vector3.zero
             ? Quaternion.LookRotation(baseDir)
             : spawnpoint.rotation;
@@ -92,7 +150,7 @@ public class ShootController : MonoBehaviour
         for (int i = 0; i < pellets; i++)
         {
             Quaternion shotRot = currentWeapon.spreadAngle > 0f
-                ? GetSpreadRotation(baseRot, currentWeapon.spreadAngle)
+                ? GetSpreadRotation(baseRot, currentWeapon.spreadAngle, currentWeapon.spreadOnlyHorizontal)
                 : baseRot;
 
             SpawnProjectile(shotRot);
@@ -101,7 +159,6 @@ public class ShootController : MonoBehaviour
 
     private void SpawnProjectile(Quaternion rotation)
     {
-        // GetOrCreate ensures a pool always exists — no manual setup needed
         Shot shot = BulletPool.GetOrCreate().Get(
             currentWeapon.ammo.ammoPrefab,
             spawnpoint.position,
@@ -112,35 +169,100 @@ public class ShootController : MonoBehaviour
             currentWeapon.damage,
             currentWeapon.ammo.speed,
             currentWeapon.ammo.gravityForce,
-            currentWeapon.ammo.decalPrefab
+            currentWeapon.ammo.decalPrefab,
+            currentWeapon.ammo.decalLayers,
+            currentWeapon.ammo.impactVFXPrefab,
+            firedByPlayer: Instance == this
         );
     }
 
-    private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle)
+    // ── Reload ────────────────────────────────────────────────────────────────
+
+    public void Reload()
     {
+        if (_isReloading) return;
+        if (currentWeapon == null) return;
+        if (_currentMagazine >= currentWeapon.maxMagazineSize) return;
+
+        if (IsPlayerController && AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
+        {
+            Debug.Log("[ShootController] Sin munición en el inventario.");
+            return;
+        }
+
+        StartCoroutine(ReloadCoroutine());
+    }
+
+    private IEnumerator ReloadCoroutine()
+    {
+        _isReloading = true;
+
+        yield return new WaitForSeconds(currentWeapon.reloadTime);
+
+        if (IsPlayerController)
+        {
+            bool isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
+            int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
+
+            if (consumed > 0)
+            {
+                _currentMagazine = isShotgunStyle
+                    ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
+                    : currentWeapon.maxMagazineSize;
+            }
+            else
+            {
+                Debug.Log("[ShootController] Sin munición en el inventario.");
+            }
+        }
+        else
+        {
+            // Enemy: infinite ammo — always refill to full after reload time
+            _currentMagazine = currentWeapon.maxMagazineSize;
+        }
+
+        _isReloading = false;
+    }
+
+    // ── Spread & Hip fire ─────────────────────────────────────────────────────
+
+    private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle, bool horizontalOnly)
+    {
+        if (horizontalOnly)
+        {
+            float h = (Random.value * 2f - 1f) * spreadAngle;
+            return baseRotation * Quaternion.Euler(0f, h, 0f);
+        }
         Vector2 spread = Random.insideUnitCircle * spreadAngle;
         return baseRotation * Quaternion.Euler(spread.y, spread.x, 0f);
     }
 
     private void StartHipFire()
     {
-        hipFireTimer = hipFireDuration;
-        if (!isHipFiring)
+        _hipFireTimer = hipFireDuration;
+        if (!_isHipFiring)
         {
-            isHipFiring = true;
+            _isHipFiring = true;
             EventBus.Raise(_hipFireOn);
         }
     }
 
     private void HandleHipFireTimer()
     {
-        if (!isHipFiring) return;
+        if (!_isHipFiring) return;
 
-        hipFireTimer -= Time.deltaTime;
-        if (hipFireTimer <= 0f)
+        _hipFireTimer -= Time.deltaTime;
+        if (_hipFireTimer <= 0f)
         {
-            isHipFiring = false;
+            _isHipFiring = false;
             EventBus.Raise(_hipFireOff);
         }
+    }
+
+    // ── Ammo ──────────────────────────────────────────────────────────────────
+
+    public void AddAmmo(int amount)
+    {
+        _currentMagazine = Mathf.Min(_currentMagazine + amount, currentWeapon.maxMagazineSize);
     }
 }
