@@ -31,6 +31,7 @@ public class MinimapManager : MonoBehaviour
     [SerializeField] private Sprite circleMaskSprite;
 
     private MinimapRenderer _renderer;
+    private RectTransform   _minimapViewRect;
 
     // =========================================================
     // LIFECYCLE
@@ -85,10 +86,17 @@ public class MinimapManager : MonoBehaviour
         // RawImage — displays the Texture2D written by MinimapRenderer
         var viewGo = new GameObject("MinimapView");
         viewGo.transform.SetParent(maskGo.transform, false);
-        FillParent(viewGo.AddComponent<RectTransform>(), 0f);
+        _minimapViewRect  = viewGo.AddComponent<RectTransform>();
+        FillParent(_minimapViewRect, 0f);
         var raw           = viewGo.AddComponent<RawImage>();
         raw.texture       = _renderer.OutputTexture;
         raw.raycastTarget = false;
+    }
+
+    private void Update()
+    {
+        if (_minimapViewRect != null)
+            _minimapViewRect.localRotation = Quaternion.Euler(0f, 0f, _renderer.CurrentYaw);
     }
 
     private static void AddImage(Transform parent, string name, Sprite sprite, Color color, float expand)

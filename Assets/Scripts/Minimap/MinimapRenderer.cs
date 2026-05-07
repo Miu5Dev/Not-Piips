@@ -39,6 +39,7 @@ public class MinimapRenderer : MonoBehaviour
     private static readonly Color32 DoorColor   = new(180,  130,   60,  255);
 
     public Texture2D OutputTexture => _tex;
+    public float CurrentYaw { get; private set; }
 
     // =========================================================
     // LIFECYCLE
@@ -103,24 +104,18 @@ public class MinimapRenderer : MonoBehaviour
 
         System.Array.Fill(_pixels, BgColor);
 
-        float yaw = 0f;
-        if (_cameraTransform != null)
-        {
-            Vector3 flat = _cameraTransform.forward;
-            flat.y = 0f;
-            if (flat.sqrMagnitude > 0.001f)
-                yaw = Mathf.Atan2(flat.x, flat.z) * Mathf.Rad2Deg;
-        }
+        CurrentYaw = _cameraTransform != null ? _cameraTransform.eulerAngles.y : 0f;
 
         // Walls → bullets → enemies → player: each layer paints over the previous
+        // All stamps use 0f — north-up. The UI RectTransform is rotated by CurrentYaw instead.
         foreach (var w in _walls)
-            if (w != null) StampWall(w, yaw);
+            if (w != null) StampWall(w, 0f);
 
         foreach (var b in _bullets)
-            if (b != null) Stamp(b.transform.position, yaw, BulletColor, _bulletRadius);
+            if (b != null) Stamp(b.transform.position, 0f, BulletColor, _bulletRadius);
 
         foreach (var e in _enemies)
-            if (e != null) Stamp(e.transform.position, yaw, EnemyColor, _enemyRadius);
+            if (e != null) Stamp(e.transform.position, 0f, EnemyColor, _enemyRadius);
 
         // Player is always the center dot
         StampAt(TexSize / 2, TexSize / 2, PlayerColor, _playerRadius);
