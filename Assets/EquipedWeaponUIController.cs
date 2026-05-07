@@ -33,7 +33,7 @@ public class EquipedWeaponUIController : MonoBehaviour
 
         int inMag  = ShootController.Instance.CurrentMagazine;
         int maxMag = ShootController.Instance.MaxMagazineSize;
-        Bullets.text = $"{inMag} / {maxMag}";
+        Bullets.text = $"{inMag}";
 
         WeaponSO weapon = ShootController.Instance.CurrentWeapon;
         if (weapon == null) { Magazines.text = "—"; return; }

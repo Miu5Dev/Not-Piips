@@ -5,7 +5,7 @@ public class WorldItemVisual : MonoBehaviour
 {
     [Header("Levitation")]
     [SerializeField] float bobHeight = 0.15f;
-    [SerializeField] float bobSpeed  = 1.8f;
+    [SerializeField] float bobSpeed = 1.8f;
     [SerializeField] float groundOffset = 0.6f;
 
     [Header("Billboard")]
@@ -15,24 +15,25 @@ public class WorldItemVisual : MonoBehaviour
     [SerializeField] float fitPadding = 0.85f;
 
     [Header("Item Colors")]
-    public Color weaponColor = new Color(1f,   0.85f, 0f);
-    public Color ammoColor   = new Color(0.7f, 0.7f,  0.7f);
-    public Color healthColor = new Color(0.3f, 0.9f,  0.3f);
-    public Color shieldColor = new Color(0.3f, 0.6f,  1f);
+    public Color weaponColor  = new Color(1f, 0.85f, 0f);
+    public Color ammoColor    = new Color(0.7f, 0.7f, 0.7f);
+    public Color healthColor  = new Color(0.3f, 0.9f, 0.3f);
+    public Color shieldColor  = new Color(0.3f, 0.6f, 1f);
     public Color defaultColor = Color.white;
 
     SpriteRenderer _sr;
     Transform      _spriteTransform;
-    Vector3        _originPos;
+    Vector3        _originLocalPos;   // ✅ local, no world
     Transform      _cam;
     float          _bobOffset;
     Transform      _labelRoot;
 
     void Awake()
     {
-        _originPos = transform.position + Vector3.up * groundOffset;
+        // ✅ FIX: guardamos el offset en LOCAL space para que siga al parent
+        _originLocalPos = transform.localPosition + Vector3.up * groundOffset;
         _bobOffset = Random.Range(0f, Mathf.PI * 2f);
-        _cam       = Camera.main?.transform;
+        _cam = Camera.main?.transform;
 
         var spriteGo = new GameObject("Sprite");
         spriteGo.transform.SetParent(transform, false);
@@ -43,7 +44,7 @@ public class WorldItemVisual : MonoBehaviour
     public void Setup(itemSO item, int amount)
     {
         _sr.sprite = item.icon;
-        _sr.color = Color.white; 
+        _sr.color  = Color.white;
 
         FitSprite();
         BuildLabel(item, amount);
@@ -52,9 +53,9 @@ public class WorldItemVisual : MonoBehaviour
     // ── Color por tipo ─────────────────────────────────────────────────────
     Color ItemColor(itemSO item)
     {
-        if (item is WeaponSO)                                           return weaponColor;
-        if (item is AmmoSO)                                             return ammoColor;
-        if (item is HealthSO h  && h.healthType == HealthType.Health)  return healthColor;
+        if (item is WeaponSO)                                         return weaponColor;
+        if (item is AmmoSO)                                           return ammoColor;
+        if (item is HealthSO h  && h.healthType  == HealthType.Health) return healthColor;
         if (item is HealthSO h2 && h2.healthType == HealthType.Shield) return shieldColor;
         return defaultColor;
     }
@@ -92,8 +93,8 @@ public class WorldItemVisual : MonoBehaviour
         canvasGo.transform.SetParent(transform, false);
         _labelRoot = canvasGo.transform;
 
-        var canvas              = canvasGo.AddComponent<Canvas>();
-        canvas.renderMode       = RenderMode.WorldSpace;
+        var canvas = canvasGo.AddComponent<Canvas>();
+        canvas.renderMode      = RenderMode.WorldSpace;
         canvas.sortingLayerName = "Default";
 
         // Name — top
@@ -115,10 +116,10 @@ public class WorldItemVisual : MonoBehaviour
     GameObject CreateWorldLabel(string text, Color color, FontStyles style)
     {
         var go = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-        var rt = go.GetComponent<RectTransform>();
+        var rt  = go.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(4f, 1f);
 
-        var tmp                = go.GetComponent<TextMeshProUGUI>();
+        var tmp = go.GetComponent<TextMeshProUGUI>();
         tmp.text               = text;
         tmp.fontSize           = 1.6f;
         tmp.fontStyle          = style;
@@ -129,10 +130,10 @@ public class WorldItemVisual : MonoBehaviour
 
         tmp.fontSharedMaterial = new Material(tmp.fontSharedMaterial);
         tmp.fontSharedMaterial.EnableKeyword("UNDERLAY_ON");
-        tmp.fontSharedMaterial.SetColor("_UnderlayColor",    new Color(0f, 0f, 0f, 0.8f));
-        tmp.fontSharedMaterial.SetFloat("_UnderlayOffsetX",  0.5f);
-        tmp.fontSharedMaterial.SetFloat("_UnderlayOffsetY", -0.5f);
-        tmp.fontSharedMaterial.SetFloat("_UnderlaySoftness", 0.2f);
+        tmp.fontSharedMaterial.SetColor("_UnderlayColor",      new Color(0f, 0f, 0f, 0.8f));
+        tmp.fontSharedMaterial.SetFloat("_UnderlayOffsetX",    0.5f);
+        tmp.fontSharedMaterial.SetFloat("_UnderlayOffsetY",   -0.5f);
+        tmp.fontSharedMaterial.SetFloat("_UnderlaySoftness",   0.2f);
 
         return go;
     }
@@ -140,8 +141,11 @@ public class WorldItemVisual : MonoBehaviour
     void Update()
     {
         float y = Mathf.Sin(Time.time * bobSpeed + _bobOffset) * bobHeight;
-        transform.position = _originPos + Vector3.up * y;
 
+        // ✅ FIX: localPosition en vez de position → sigue al parent
+        transform.localPosition = _originLocalPos + Vector3.up * y;
+
+        // Billboard sigue usando world-space, está correcto
         if (faceCamera && _cam != null)
             transform.rotation = Quaternion.LookRotation(transform.position - _cam.position);
     }

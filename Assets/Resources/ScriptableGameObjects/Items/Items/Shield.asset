@@ -16,6 +16,6 @@ MonoBehaviour:
   maxStackSize: 3
   weight: 0
   size: {x: 1, y: 1}
-  icon: {fileID: 21300000, guid: 0a7510b688e7df14ba93b48b4803bce0, type: 3}
+  icon: {fileID: -24456900, guid: 0a7510b688e7df14ba93b48b4803bce0, type: 3}
   healthType: 1
   restoreAmount: 10
