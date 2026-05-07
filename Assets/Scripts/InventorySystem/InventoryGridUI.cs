@@ -55,11 +55,13 @@ public class InventoryGridUI : MonoBehaviour
         if (ShootController.Instance == null) return;
         if (InventoryEquipHandler.Instance == null) return;
 
-        // Actualizamos SOLO la instancia exacta equipada, no por SO
         InventoryItemUI equippedView = InventoryEquipHandler.Instance.EquippedItem;
         if (equippedView == null) return;
 
         equippedView.SetStoredAmmo(ShootController.Instance.CurrentMagazine);
+
+        // ── NEW: sync the HUD weapon panel ──
+        EquipedWeaponUIController.Instance?.RefreshAmmo();
     }
 
     void OnValidate()
@@ -178,7 +180,6 @@ public class InventoryGridUI : MonoBehaviour
     {
         if (_logicGrid == null) return false;
 
-        // ── Stack check: si ya existe un stack del mismo item, apila primero ──
         if (item.isStackable)
         {
             foreach (var existing in _itemViews)
@@ -186,37 +187,48 @@ public class InventoryGridUI : MonoBehaviour
                 if (existing == null || existing.Item != item) continue;
                 if (existing.StackCount >= item.maxStackSize) continue;
                 existing.AddToStack(1, item.maxStackSize);
+                NotifyAmmoHUDIfNeeded(item);  // ← ADD
                 return true;
             }
-            // Revisar wildcard también
             if (_wildcardItem != null
                 && _wildcardItem.Item == item
                 && _wildcardItem.StackCount < item.maxStackSize)
             {
                 _wildcardItem.AddToStack(1, item.maxStackSize);
+                NotifyAmmoHUDIfNeeded(item);  // ← ADD
                 return true;
             }
         }
-        // ─────────────────────────────────────────────────────────────────────
 
         if (_logicGrid.TryAdd(item.size, out var origin, out var rotated))
         {
             var view = CreateItemVisual(item, rotated);
             view.Reposition(origin, rotated);
             _itemViews.Add(view);
+            NotifyAmmoHUDIfNeeded(item);  // ← ADD
             return true;
         }
 
         if (_wildcardItem == null)
         {
-            Debug.Log($"[Inventory] Inventory is full — placing {item.name} in wildcard slot.");
             var view = CreateItemVisual(item, false);
             PlaceInWildcard(view);
+            NotifyAmmoHUDIfNeeded(item);  // ← ADD
             return true;
         }
 
-        Debug.Log($"[Inventory] Cannot pick up {item.name} — wildcard slot is occupied.");
         return false;
+    }
+
+// ── Helper ────────────────────────────────────────────────────────────────────
+    private void NotifyAmmoHUDIfNeeded(itemSO item)
+    {
+        if (ShootController.Instance == null) return;
+        if (ShootController.Instance.CurrentWeapon == null) return;
+
+        // Solo refrescar si el item recogido es la ammo del arma equipada
+        if (ShootController.Instance.CurrentWeapon.ammo == item)
+            EquipedWeaponUIController.Instance?.RefreshAmmo();
     }
 
     public void PlaceInWildcard(InventoryItemUI view)

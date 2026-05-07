@@ -16,7 +16,7 @@ MonoBehaviour:
   maxStackSize: 30
   weight: 5
   size: {x: 2, y: 1}
-  icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
+  icon: {fileID: 773600925, guid: d22a073dbd8961341b8a5b294896d56b, type: 3}
   weaponType: 1
   shotType: 2
   ammo: {fileID: 11400000, guid: 75914aed3c10a31488b207fcd3f35aea, type: 2}
@@ -26,5 +26,5 @@ MonoBehaviour:
   pellets: 6
   spreadAngle: 6
   spreadOnlyHorizontal: 0
-  reloadTime: 0
+  reloadTime: 0.05
   weaponPrefab: {fileID: 0}

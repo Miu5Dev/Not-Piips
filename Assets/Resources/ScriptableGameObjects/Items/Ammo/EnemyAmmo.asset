@@ -20,6 +20,9 @@ MonoBehaviour:
   speed: 5
   gravityForce: 0
   ammoPrefab: {fileID: 5487143856129994456, guid: 5baabc16f6f758448bc3d72c6bfec7c1, type: 3}
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 375
   decalPrefab: {fileID: 6844756505131219995, guid: 57cbb2bd8a8ea5d459644f3feb44b95a, type: 3}
   decalLayers:
     serializedVersion: 2

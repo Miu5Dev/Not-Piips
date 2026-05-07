@@ -12,16 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
   m_Name: Minigun
   m_EditorClassIdentifier: 
+  isStackable: 0
+  maxStackSize: 30
   weight: 5
   size: {x: 5, y: 2}
-  icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
+  icon: {fileID: -857140298, guid: 686bac20ba1d7c34299f5cca7c14c9b7, type: 3}
   weaponType: 4
   shotType: 0
-  ammo: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
+  ammo: {fileID: 11400000, guid: ba60e182fbc25a742ae7045b6a8e1983, type: 2}
   damage: 5
   maxMagazineSize: 100
   fireRate: 12
   pellets: 1
   spreadAngle: 1.5
-  reloadTime: 1.5
+  spreadOnlyHorizontal: 0
+  reloadTime: 3
   weaponPrefab: {fileID: 0}
