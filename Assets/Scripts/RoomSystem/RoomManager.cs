@@ -61,11 +61,26 @@ public class RoomManager : MonoBehaviour
 
         activeDoor.SetState(DoorState.Sealed);
 
-        // Remember which door was used to leave the current room, so when that
-        // room is later destroyed we can detach this door and play its close
-        // animation to plug the hole in the surviving room's wall.
-        if (_loadedRooms.Count > 0)
-            _loadedRooms[_loadedRooms.Count - 1].SetExitDoor(activeDoor);
+        // Resolve the room the player is leaving from the door itself, so this
+        // works even if the player backtracked into an older room before opening
+        // a door. Then record activeDoor as that room's exit door.
+        RoomController activeRoom = activeDoor.GetComponentInParent<RoomController>();
+        if (activeRoom != null)
+        {
+            activeRoom.SetExitDoor(activeDoor);
+
+            // Seal every other unlocked door in the room the player is leaving.
+            // Once they walk through activeDoor, this room becomes stale and is
+            // queued for despawn — letting them open another of its doors would
+            // try to despawn the room they're standing in. Sealing them here
+            // makes that path impossible. Player can still physically walk back
+            // through the entry hole, but can't trigger another transition.
+            foreach (var door in activeRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
+            {
+                if (door != activeDoor && door.State == DoorState.Unlocked)
+                    door.SetState(DoorState.Sealed);
+            }
+        }
 
         RoomController prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         RoomController newRoom = Instantiate(prefab);
