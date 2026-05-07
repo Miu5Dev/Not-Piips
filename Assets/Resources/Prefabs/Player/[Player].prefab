@@ -1448,7 +1448,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerTransform: {fileID: 4862838868547469315}
   cameraTransform: {fileID: 888260736053150557}
-  canvas: {fileID: 8501439828291276898}
+  canvas: {fileID: 0}
   minimapWorldRadius: 20
   playerDotSize: 2
   enemyDotSize: 2
@@ -2127,7 +2127,7 @@ GameObject:
   - component: {fileID: 5445410101809221768}
   m_Layer: 6
   m_Name: '[Player]'
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

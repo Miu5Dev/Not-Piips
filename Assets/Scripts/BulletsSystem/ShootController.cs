@@ -171,7 +171,8 @@ public class ShootController : MonoBehaviour
             currentWeapon.ammo.gravityForce,
             currentWeapon.ammo.decalPrefab,
             currentWeapon.ammo.decalLayers,
-            currentWeapon.ammo.impactVFXPrefab
+            currentWeapon.ammo.impactVFXPrefab,
+            firedByPlayer: Instance == this
         );
     }
 

@@ -14,6 +14,7 @@ public class MinimapRenderer : MonoBehaviour
     // ── Entity registry ───────────────────────────────────────────────────────
     private static readonly HashSet<EnemyController> _enemies = new();
     private static readonly HashSet<Shot>            _bullets = new();
+    private static readonly HashSet<MinimapWall>     _walls   = new();
 
     // ── Config ────────────────────────────────────────────────────────────────
     private Transform _playerTransform;
@@ -31,11 +32,14 @@ public class MinimapRenderer : MonoBehaviour
 
     // ── Colors ────────────────────────────────────────────────────────────────
     private static readonly Color32 BgColor     = new(220,  220,  220,  255);
-    private static readonly Color32 PlayerColor = new( 0, 220,   0,  255);
-    private static readonly Color32 EnemyColor  = new(20,  20,  20,  255);
-    private static readonly Color32 BulletColor = new(220,  0,   0,  255);
+    private static readonly Color32 PlayerColor = new(  0,  220,    0,  255);
+    private static readonly Color32 EnemyColor  = new( 20,   20,   20,  255);
+    private static readonly Color32 BulletColor = new(220,    0,    0,  255);
+    private static readonly Color32 WallColor   = new( 60,   60,   60,  255);
+    private static readonly Color32 DoorColor   = new(180,  130,   60,  255);
 
     public Texture2D OutputTexture => _tex;
+    public float CurrentYaw { get; private set; }
 
     // =========================================================
     // LIFECYCLE
@@ -83,6 +87,8 @@ public class MinimapRenderer : MonoBehaviour
     public static void Unregister(EnemyController e) => _enemies.Remove(e);
     public static void RegisterBullet(Shot s)        => _bullets.Add(s);
     public static void UnregisterBullet(Shot s)      => _bullets.Remove(s);
+    public static void RegisterWall(MinimapWall w)   => _walls.Add(w);
+    public static void UnregisterWall(MinimapWall w) => _walls.Remove(w);
 
     // =========================================================
     // RENDER
@@ -98,14 +104,18 @@ public class MinimapRenderer : MonoBehaviour
 
         System.Array.Fill(_pixels, BgColor);
 
-        float yaw = _cameraTransform != null ? _cameraTransform.eulerAngles.y : 0f;
+        CurrentYaw = _cameraTransform != null ? _cameraTransform.eulerAngles.y : 0f;
 
-        // Bullets → enemies → player: each layer paints over the previous
+        // Walls → bullets → enemies → player: each layer paints over the previous
+        // All stamps use 0f — north-up. The UI RectTransform is rotated by CurrentYaw instead.
+        foreach (var w in _walls)
+            if (w != null) StampWall(w, 0f);
+
         foreach (var b in _bullets)
-            if (b != null) Stamp(b.transform.position, yaw, BulletColor, _bulletRadius);
+            if (b != null) Stamp(b.transform.position, 0f, BulletColor, _bulletRadius);
 
         foreach (var e in _enemies)
-            if (e != null) Stamp(e.transform.position, yaw, EnemyColor, _enemyRadius);
+            if (e != null) Stamp(e.transform.position, 0f, EnemyColor, _enemyRadius);
 
         // Player is always the center dot
         StampAt(TexSize / 2, TexSize / 2, PlayerColor, _playerRadius);
@@ -152,4 +162,69 @@ public class MinimapRenderer : MonoBehaviour
 
     private int ToPixelRadius(float worldDiameter) =>
         Mathf.Max(1, Mathf.RoundToInt(worldDiameter / _worldRadius * (TexSize * 0.25f)));
+
+    private void StampWall(MinimapWall wall, float cameraYaw)
+    {
+        float rad      = cameraYaw * Mathf.Deg2Rad;
+        float cos      = Mathf.Cos(rad);
+        float sin      = Mathf.Sin(rad);
+        float half     = TexSize * 0.5f;
+        Vector3 origin = _playerTransform.position;
+
+        var tp = new Vector2Int[4];
+        for (int i = 0; i < 4; i++)
+        {
+            float wx = wall.Corners[i].x - origin.x;
+            float wz = wall.Corners[i].y - origin.z;   // Corners.y stores world Z
+            float rx  =  wx * cos - wz * sin;
+            float rz  =  wx * sin + wz * cos;
+            tp[i] = new Vector2Int(
+                Mathf.RoundToInt(rx / _worldRadius * half) + TexSize / 2,
+                Mathf.RoundToInt(rz / _worldRadius * half) + TexSize / 2
+            );
+        }
+
+        Color32 color = wall.isDoor ? DoorColor : WallColor;
+        StampFilledQuad(tp[0], tp[1], tp[2], tp[3], color);
+    }
+
+
+    private void StampFilledQuad(Vector2Int p0, Vector2Int p1, Vector2Int p2, Vector2Int p3, Color32 color)
+    {
+        int minX = Mathf.Min(p0.x, Mathf.Min(p1.x, Mathf.Min(p2.x, p3.x)));
+        int maxX = Mathf.Max(p0.x, Mathf.Max(p1.x, Mathf.Max(p2.x, p3.x)));
+        int minY = Mathf.Min(p0.y, Mathf.Min(p1.y, Mathf.Min(p2.y, p3.y)));
+        int maxY = Mathf.Max(p0.y, Mathf.Max(p1.y, Mathf.Max(p2.y, p3.y)));
+
+        if (maxX - minX <= 2 && maxY - minY <= 2)
+        {
+            StampAt((p0.x + p1.x + p2.x + p3.x) / 4,
+                    (p0.y + p1.y + p2.y + p3.y) / 4, color, 1);
+            return;
+        }
+
+        minX = Mathf.Max(0, minX);
+        maxX = Mathf.Min(TexSize - 1, maxX);
+        minY = Mathf.Max(0, minY);
+        maxY = Mathf.Min(TexSize - 1, maxY);
+
+        for (int py = minY; py <= maxY; py++)
+        for (int px = minX; px <= maxX; px++)
+        {
+            if (PointInTriangle(px, py, p0, p1, p2) || PointInTriangle(px, py, p0, p2, p3))
+                _pixels[py * TexSize + px] = color;
+        }
+    }
+
+    // Cross-product sign test; returns 0 on the edge (treated as inside)
+    private static bool PointInTriangle(int px, int py, Vector2Int a, Vector2Int b, Vector2Int c)
+    {
+        int d1 = (px - b.x) * (a.y - b.y) - (a.x - b.x) * (py - b.y);
+        int d2 = (px - c.x) * (b.y - c.y) - (b.x - c.x) * (py - c.y);
+        int d3 = (px - a.x) * (c.y - a.y) - (c.x - a.x) * (py - a.y);
+
+        bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+        return !(hasNeg && hasPos);
+    }
 }
