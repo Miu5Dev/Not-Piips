@@ -73,6 +73,12 @@ public class RoomManager : MonoBehaviour
         }
 
         AlignRoom(newRoom, activeDoor.transform, entryDoor);
+
+        // MinimapWall corners are cached in Awake (before AlignRoom moves the room).
+        // Refresh them now so the minimap reflects the final world position.
+        foreach (var wall in newRoom.GetComponentsInChildren<MinimapWall>())
+            wall.RefreshCorners();
+
         newRoom.Initialize(isStartRoom: false, playerTransform, entryDoor);
 
         Physics.SyncTransforms();
