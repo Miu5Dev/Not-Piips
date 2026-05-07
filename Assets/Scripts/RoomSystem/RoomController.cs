@@ -17,6 +17,12 @@ public class RoomController : MonoBehaviour
     // The door this room was entered through — set by RoomManager at spawn time.
     public DoorController EntranceDoor { get; private set; }
 
+    // The door the player used to leave this room — set by RoomManager when the
+    // next room is opened. Used so the door can survive this room's destruction
+    // and play a close animation to plug the hole in the surviving room's wall.
+    public DoorController ExitDoor { get; private set; }
+    public void SetExitDoor(DoorController door) => ExitDoor = door;
+
     private DoorController[] _doors;
     private int _spawnersCleared;
 

@@ -156,7 +156,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 4500a2c9cab5e3a4e8f6c6aa642c345b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -277,3 +277,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDoor: 1
   doorHalfExtents: {x: 1, y: 0.25}
+  minimapMinHalfThickness: 5

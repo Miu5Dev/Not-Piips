@@ -61,6 +61,27 @@ public class RoomManager : MonoBehaviour
 
         activeDoor.SetState(DoorState.Sealed);
 
+        // Resolve the room the player is leaving from the door itself, so this
+        // works even if the player backtracked into an older room before opening
+        // a door. Then record activeDoor as that room's exit door.
+        RoomController activeRoom = activeDoor.GetComponentInParent<RoomController>();
+        if (activeRoom != null)
+        {
+            activeRoom.SetExitDoor(activeDoor);
+
+            // Seal every other unlocked door in the room the player is leaving.
+            // Once they walk through activeDoor, this room becomes stale and is
+            // queued for despawn — letting them open another of its doors would
+            // try to despawn the room they're standing in. Sealing them here
+            // makes that path impossible. Player can still physically walk back
+            // through the entry hole, but can't trigger another transition.
+            foreach (var door in activeRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
+            {
+                if (door != activeDoor && door.State == DoorState.Unlocked)
+                    door.SetState(DoorState.Sealed);
+            }
+        }
+
         RoomController prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         RoomController newRoom = Instantiate(prefab);
 
@@ -93,12 +114,28 @@ public class RoomManager : MonoBehaviour
         {
             RoomController oldRoom = _loadedRooms[0];
 
-            // Detach all doors from the old room so they survive the Destroy
-            // and can finish their close animation on their own
-            foreach (var door in oldRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
+            // Only the exit door needs to survive: it sits in the doorway shared
+            // with the surviving next room, and its close animation plugs the
+            // hole in that room's wall. Other doors of oldRoom are either inactive
+            // (entry door — would throw on StartCoroutine) or have no wall left
+            // around them after oldRoom is destroyed, so they go away with it.
+            DoorController exitDoor = oldRoom.ExitDoor;
+            if (exitDoor != null && exitDoor.gameObject.activeInHierarchy)
             {
-                door.transform.SetParent(null);
-                door.CloseAndThen(() => Destroy(door.gameObject));
+                // Walk up to the topmost ancestor that's still a direct child of oldRoom,
+                // and detach THAT — this brings along any Animator / visuals / colliders
+                // that live on parents or siblings of the DoorController within the same
+                // door prefab branch. Detaching just exitDoor.transform would orphan them.
+                Transform branch = exitDoor.transform;
+                while (branch.parent != null && branch.parent != oldRoom.transform)
+                    branch = branch.parent;
+                branch.SetParent(null, worldPositionStays: true);
+
+                // Leave the closed door in the world permanently — it plugs the
+                // hole in the surviving room's wall. It's already in DoorState.Sealed
+                // (set when the player opened it), so TryOpen will reject any
+                // future interaction.
+                exitDoor.CloseAndThen(null);
             }
 
             Destroy(oldRoom.gameObject);
