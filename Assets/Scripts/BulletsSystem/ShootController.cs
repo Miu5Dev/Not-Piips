@@ -183,7 +183,7 @@ public class ShootController : MonoBehaviour
         );
     }
 
-    // ── Reload ────────────────────────────────────────────────────────────────
+// ── Reload ──────────────────────────────────────────────────────────────────
 
     public void Reload()
     {
@@ -191,14 +191,18 @@ public class ShootController : MonoBehaviour
         if (currentWeapon == null) return;
         if (_currentMagazine >= currentWeapon.maxMagazineSize) return;
 
+        // Arma con ammo infinita: no revisar inventario
+        if (currentWeapon.infiniteAmmo)
+        {
+            StartCoroutine(ReloadCoroutine());
+            return;
+        }
+
         if (IsPlayerController && AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
         {
             Debug.Log("[ShootController] Sin munición en el inventario.");
-
-            // Sin ammo Y cargador vacío → equipar arma backup
             if (_currentMagazine <= 0)
                 TryEquipBackup();
-
             return;
         }
 
@@ -209,14 +213,24 @@ public class ShootController : MonoBehaviour
     {
         _isReloading = true;
 
-        yield return new WaitForSeconds(currentWeapon.reloadTime);
+        float elapsed = 0f;
+        float reloadTime = currentWeapon.reloadTime;
 
+        // Solo el player ve la animación del crosshair
+        while (elapsed < reloadTime)
+        {
+            elapsed += Time.deltaTime;
+            if (IsPlayerController)
+                EventBus.Raise(new OnReloadEvent(true, elapsed / reloadTime));
+            yield return null;
+        }
+
+        // ── Lógica de munición (sin cambios) ─────────────────────────────────
         if (IsPlayerController)
         {
             bool isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
-            int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
 
-            if (consumed > 0)
+            if (currentWeapon.infiniteAmmo)
             {
                 _currentMagazine = isShotgunStyle
                     ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
@@ -224,18 +238,30 @@ public class ShootController : MonoBehaviour
             }
             else
             {
-                Debug.Log("[ShootController] Sin munición en el inventario.");
+                int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
+                if (consumed > 0)
+                {
+                    _currentMagazine = isShotgunStyle
+                        ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
+                        : currentWeapon.maxMagazineSize;
+                }
+                else
+                {
+                    Debug.Log("[ShootController] Sin munición en el inventario.");
+                }
             }
         }
         else
         {
-            // Enemy: infinite ammo — always refill to full after reload time
             _currentMagazine = currentWeapon.maxMagazineSize;
         }
 
         _isReloading = false;
-    }
 
+        if (IsPlayerController)
+            EventBus.Raise(new OnReloadEvent(false, 0f));
+    }
+    
     // ── Spread & Hip fire ─────────────────────────────────────────────────────
 
     private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle, bool horizontalOnly)

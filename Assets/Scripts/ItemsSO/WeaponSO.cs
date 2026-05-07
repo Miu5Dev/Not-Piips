@@ -12,6 +12,10 @@ public class WeaponSO : itemSO
     public AmmoSO     ammo;
     public int        damage;
     public int        maxMagazineSize;
+    
+    // En WeaponSO.cs
+    [Header("Ammo")]
+    public bool infiniteAmmo = false;
 
     [Header("Fire")]
     public float fireRate    = 8f;

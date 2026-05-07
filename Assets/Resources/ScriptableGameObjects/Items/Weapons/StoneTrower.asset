@@ -16,12 +16,13 @@ MonoBehaviour:
   maxStackSize: 30
   weight: 0
   size: {x: 0, y: 0}
-  icon: {fileID: 21300000, guid: 1c164d485bcfa3d49a656609883cf793, type: 3}
+  icon: {fileID: -289717063, guid: 1c164d485bcfa3d49a656609883cf793, type: 3}
   weaponType: 0
   shotType: 1
   ammo: {fileID: 11400000, guid: 8ffea22f4db9d2243bc6911cb2c69c1f, type: 2}
   damage: 5
-  maxMagazineSize: 2147483647
+  maxMagazineSize: 1
+  infiniteAmmo: 1
   fireRate: 5
   pellets: 1
   spreadAngle: 0
