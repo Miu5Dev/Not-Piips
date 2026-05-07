@@ -10,16 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f9d586ee020d86a4d8095c9f3f6e1fd1, type: 3}
-  m_Name: PistolAmmo
+  m_Name: Shotgun Ammo
   m_EditorClassIdentifier: 
   isStackable: 1
-  maxStackSize: 30
+  maxStackSize: 8
   weight: 5
   size: {x: 1, y: 1}
-  icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  icon: {fileID: 21300000, guid: da9471318777aa5419ad7bb7e2b96464, type: 3}
   speed: 80
   gravityForce: -1
   ammoPrefab: {fileID: 5487143856129994456, guid: 3c89394c6b42b124da20b10799b0ce4a, type: 3}
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 439
   decalPrefab: {fileID: 6844756505131219995, guid: 57cbb2bd8a8ea5d459644f3feb44b95a, type: 3}
   decalLayers:
     serializedVersion: 2

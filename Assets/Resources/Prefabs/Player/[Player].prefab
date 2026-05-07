@@ -3504,6 +3504,7 @@ MonoBehaviour:
   hipFireDuration: 0.5
   shotSpawnDelay: 0.06
   aimTarget: {fileID: 1037883504434991634}
+  backupWeapon: {fileID: 11400000, guid: 150658266e5ff2a488c3c7b1288e7a0e, type: 2}
   _currentMagazineField: 0
 --- !u!114 &7918458128759000879
 MonoBehaviour:

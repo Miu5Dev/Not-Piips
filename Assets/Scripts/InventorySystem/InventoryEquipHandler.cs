@@ -63,6 +63,35 @@ public class InventoryEquipHandler : MonoBehaviour
             InventoryNavigator.Instance?.HandleEquip(e);
             return;
         }
+        
+        // ── Usar item de salud ────────────────────────────────────────────
+        if (target.Item is HealthSO healthItem)
+        {
+            if (target.StackCount > 0)
+            {
+                target.RemoveFromStack(1);
+
+                EventBus.Raise(new OnHealthChangeEvent
+                {
+                    healthType   = healthItem.healthType,
+                    amount       = (int)healthItem.restoreAmount,
+                    target       = gameObject.transform.root.gameObject,
+                    WeakPointHit = false
+                });
+
+                InventoryDragHandler.Instance?.ShowPopup(
+                    $"+{healthItem.restoreAmount} {healthItem.healthType}!"
+                );
+
+                // Si se agotó el stack, eliminar el item del inventario
+                if (target.StackCount <= 0)
+                    InventoryGridUI.Instance?.RemoveItem(target);
+            }
+
+            InventoryNavigator.Instance?.HandleEquip(e);
+            return;
+        }
+        
         // ─────────────────────────────────────────────────────────────────
 
         if (target.Item is not WeaponSO weapon) return;
@@ -81,5 +110,16 @@ public class InventoryEquipHandler : MonoBehaviour
 
         InventoryDragHandler.Instance?.ShowPopup($"{weapon.name} Equipped!");
         InventoryNavigator.Instance?.HandleEquip(e);
+    }
+    
+    /// <summary>
+    /// Desequipa el arma actual del inventario (limpia el highlight en la UI).
+    /// Llamado automáticamente por ShootController al activar el arma backup.
+    /// </summary>
+    public void UnequipCurrent()
+    {
+        if (_currentlyEquipped == null) return;
+        _currentlyEquipped.SetEquipped(false);
+        _currentlyEquipped = null;
     }
 }

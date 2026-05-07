@@ -18,6 +18,8 @@ public class ShootController : MonoBehaviour
     [SerializeField] private float shotSpawnDelay = 0.06f;
 
     [SerializeField] private AimTargetController aimTarget;
+    [SerializeField] private WeaponSO backupWeapon;
+
 
     [SerializeField] private int _currentMagazineField;
     private int _currentMagazine
@@ -121,9 +123,13 @@ public class ShootController : MonoBehaviour
 
     private void TryShoot()
     {
-        if (currentWeapon == null || currentWeapon.ammo == null) return;
+        if (currentWeapon == null || currentWeapon.ammo == null)
+        {
+            TryEquipBackup();
+            return;
+        }
         if (_isReloading) return;
-        if (_currentMagazine <= 0) return;
+        if (_currentMagazine <= 0) { Reload(); return; }
         if (Time.time < _lastShotTime + (1f / currentWeapon.fireRate)) return;
 
         _currentMagazine--;
@@ -172,7 +178,8 @@ public class ShootController : MonoBehaviour
             currentWeapon.ammo.decalPrefab,
             currentWeapon.ammo.decalLayers,
             currentWeapon.ammo.impactVFXPrefab,
-            firedByPlayer: Instance == this
+            firedByPlayer: Instance == this,
+            currentWeapon.ammo.collisionLayers 
         );
     }
 
@@ -187,6 +194,11 @@ public class ShootController : MonoBehaviour
         if (IsPlayerController && AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
         {
             Debug.Log("[ShootController] Sin munición en el inventario.");
+
+            // Sin ammo Y cargador vacío → equipar arma backup
+            if (_currentMagazine <= 0)
+                TryEquipBackup();
+
             return;
         }
 
@@ -264,5 +276,26 @@ public class ShootController : MonoBehaviour
     public void AddAmmo(int amount)
     {
         _currentMagazine = Mathf.Min(_currentMagazine + amount, currentWeapon.maxMagazineSize);
+    }
+    
+    // ── Backup weapon ─────────────────────────────────────────────────────────
+
+    private void TryEquipBackup()
+    {
+        if (backupWeapon == null) return;
+        if (currentWeapon == backupWeapon) return; // ya está equipado el backup
+
+        InventoryEquipHandler.Instance?.UnequipCurrent();
+
+        EquipWeapon(backupWeapon);
+
+        EventBus.Raise(new OnWeaponEquipEvent
+        {
+            weaponToEquip = backupWeapon,
+            initialAmmo   = backupWeapon.maxMagazineSize
+        });
+
+        InventoryDragHandler.Instance?.ShowPopup($"No ammo! Switched to {backupWeapon.name}");
+        Debug.Log($"[ShootController] Sin munición. Cambiando a arma backup: {backupWeapon.name}");
     }
 }
