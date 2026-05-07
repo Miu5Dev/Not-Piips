@@ -61,6 +61,12 @@ public class RoomManager : MonoBehaviour
 
         activeDoor.SetState(DoorState.Sealed);
 
+        // Remember which door was used to leave the current room, so when that
+        // room is later destroyed we can detach this door and play its close
+        // animation to plug the hole in the surviving room's wall.
+        if (_loadedRooms.Count > 0)
+            _loadedRooms[_loadedRooms.Count - 1].SetExitDoor(activeDoor);
+
         RoomController prefab = roomPrefabs[Random.Range(0, roomPrefabs.Length)];
         RoomController newRoom = Instantiate(prefab);
 
@@ -93,12 +99,28 @@ public class RoomManager : MonoBehaviour
         {
             RoomController oldRoom = _loadedRooms[0];
 
-            // Detach all doors from the old room so they survive the Destroy
-            // and can finish their close animation on their own
-            foreach (var door in oldRoom.GetComponentsInChildren<DoorController>(includeInactive: true))
+            // Only the exit door needs to survive: it sits in the doorway shared
+            // with the surviving next room, and its close animation plugs the
+            // hole in that room's wall. Other doors of oldRoom are either inactive
+            // (entry door — would throw on StartCoroutine) or have no wall left
+            // around them after oldRoom is destroyed, so they go away with it.
+            DoorController exitDoor = oldRoom.ExitDoor;
+            if (exitDoor != null && exitDoor.gameObject.activeInHierarchy)
             {
-                door.transform.SetParent(null);
-                door.CloseAndThen(() => Destroy(door.gameObject));
+                // Walk up to the topmost ancestor that's still a direct child of oldRoom,
+                // and detach THAT — this brings along any Animator / visuals / colliders
+                // that live on parents or siblings of the DoorController within the same
+                // door prefab branch. Detaching just exitDoor.transform would orphan them.
+                Transform branch = exitDoor.transform;
+                while (branch.parent != null && branch.parent != oldRoom.transform)
+                    branch = branch.parent;
+                branch.SetParent(null, worldPositionStays: true);
+
+                // Leave the closed door in the world permanently — it plugs the
+                // hole in the surviving room's wall. It's already in DoorState.Sealed
+                // (set when the player opened it), so TryOpen will reject any
+                // future interaction.
+                exitDoor.CloseAndThen(null);
             }
 
             Destroy(oldRoom.gameObject);
