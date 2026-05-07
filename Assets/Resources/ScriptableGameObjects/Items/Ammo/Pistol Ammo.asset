@@ -16,7 +16,7 @@ MonoBehaviour:
   maxStackSize: 30
   weight: 5
   size: {x: 1, y: 1}
-  icon: {fileID: 21300000, guid: 927a115093a58c84a847c21897d11925, type: 3}
+  icon: {fileID: 65683253, guid: 927a115093a58c84a847c21897d11925, type: 3}
   speed: 80
   gravityForce: -1
   ammoPrefab: {fileID: 5487143856129994456, guid: 3c89394c6b42b124da20b10799b0ce4a, type: 3}
