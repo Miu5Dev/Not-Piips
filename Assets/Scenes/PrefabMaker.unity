@@ -127,6 +127,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1037883504434991634, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: aimMask.m_Bits
+      value: 191
+      objectReference: {fileID: 0}
     - target: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_LocalPosition.x
       value: -2.503883

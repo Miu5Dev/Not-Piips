@@ -50,8 +50,6 @@ public class Shot : MonoBehaviour
 
     private void OnEnable()
     {
-        MinimapRenderer.RegisterBullet(this);
-
         trail = GetComponentInChildren<TrailRenderer>(includeInactive: true);
         if (trail == null) return;
 
@@ -72,7 +70,8 @@ public class Shot : MonoBehaviour
     // ── Initialization ────────────────────────────────────────────────────────
 
     public void Initialize(int damage, float speed, float gravityForce,
-        GameObject decal = null, LayerMask? decalLayerMask = null, GameObject impactVFX = null)
+        GameObject decal = null, LayerMask? decalLayerMask = null, GameObject impactVFX = null,
+        bool firedByPlayer = false)
     {
         if (initialized) return;
 
@@ -87,6 +86,9 @@ public class Shot : MonoBehaviour
         rb.linearVelocity = moveDirection * Speed;
         spawnPoint = transform.position;
         initialized = true;
+
+        if (!firedByPlayer)
+            MinimapRenderer.RegisterBullet(this);
 
         ApplyTrailPreset();
     }
