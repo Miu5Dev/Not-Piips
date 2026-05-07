@@ -1449,7 +1449,6 @@ MonoBehaviour:
   playerTransform: {fileID: 4862838868547469315}
   cameraTransform: {fileID: 888260736053150557}
   canvas: {fileID: 0}
-  canvas: {fileID: 8501439828291276898}
   minimapWorldRadius: 20
   playerDotSize: 2
   enemyDotSize: 2
@@ -2124,7 +2123,6 @@ GameObject:
   - component: {fileID: 7918458128759000879}
   - component: {fileID: 5912869001865591104}
   - component: {fileID: 4568557906976104629}
-  - component: {fileID: 4080737858571906213}
   - component: {fileID: 1964081479351120243}
   - component: {fileID: 5445410101809221768}
   m_Layer: 6
@@ -2342,7 +2340,6 @@ MonoBehaviour:
       componentMember: 
     conditions: []
     logic: 0
---- !u!114 &4080737858571906213
 --- !u!114 &1964081479351120243
 MonoBehaviour:
   m_ObjectHideFlags: 0
