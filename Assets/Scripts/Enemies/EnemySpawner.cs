@@ -26,13 +26,6 @@ public class EnemySpawner : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform playerTransform;
 
-    [Header("Room Settings")]
-    [Tooltip("Uncheck when this spawner lives inside a room prefab — RoomController will call StartSpawning() instead.")]
-    [SerializeField] private bool autoStart = true;
-
-    // Invoked once when all waves are done (only fires if infiniteWaves = false).
-    public System.Action OnAllCleared;
-
     // ── State ─────────────────────────────────────────────────────────────────
     private int  _currentWave;
     private int  _aliveEnemies;
@@ -44,24 +37,15 @@ public class EnemySpawner : MonoBehaviour
 
     private void Start()
     {
-        if (autoStart)
-            StartSpawning();
-    }
-
-    /// <summary>Called by RoomController after setting the player transform.</summary>
-    public void StartSpawning()
-    {
         if (enemyTypes == null || enemyTypes.Length == 0)
         {
             Debug.LogWarning($"[EnemySpawner] No enemy types assigned on {gameObject.name}.");
-            OnAllCleared?.Invoke();
             return;
         }
 
         if (playerTransform == null)
         {
             Debug.LogWarning($"[EnemySpawner] Player Transform not assigned on {gameObject.name}.");
-            OnAllCleared?.Invoke();
             return;
         }
 
@@ -84,8 +68,6 @@ public class EnemySpawner : MonoBehaviour
 
             _currentWave++;
         }
-
-        OnAllCleared?.Invoke();
     }
 
     private IEnumerator SpawnWave()

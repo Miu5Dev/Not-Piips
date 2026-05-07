@@ -1220,53 +1220,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8782050542970856215, guid: cd0a953d7ee6f7e4c961141d5939acdd, type: 3}
   m_PrefabInstance: {fileID: 698914692}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &752863796
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 752863798}
-  - component: {fileID: 752863797}
-  m_Layer: 0
-  m_Name: roommanager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &752863797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 752863796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c0e38339702b4f4a854f6053d3683e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  roomPrefabs: []
-  startRoom: {fileID: 0}
-  playerTransform: {fileID: 0}
---- !u!4 &752863798
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 752863796}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.335369, y: 5.181321, z: -2.2706318}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &765528793
 GameObject:
   m_ObjectHideFlags: 0
@@ -1480,6 +1433,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1386785124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &842589281 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4862838868547469315, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+  m_PrefabInstance: {fileID: 1811591490}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &920361923
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2657,8 +2615,41 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8884231642506751066, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1811591492}
   m_SourcePrefab: {fileID: 100100000, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+--- !u!1 &1811591491 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8884231642506751066, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+  m_PrefabInstance: {fileID: 1811591490}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1811591492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811591491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fd3b89a53c62ac4989087a18f8919c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventsFolder: Scripts/Events
+  selectedEventTypeName: OnPlayerSpawnEvent
+  paramValues:
+  - fieldName: Player_Enemies_Target
+    value: 
+    objectRef: {fileID: 842589281}
+  - fieldName: player
+    value: 
+    objectRef: {fileID: 1811591491}
+  raiseOnAwake: 0
+  raiseOnStart: 0
+  raiseOnEnable: 1
+  raiseOnDisable: 0
 --- !u!1001 &1837006143
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3166,4 +3157,3 @@ SceneRoots:
   - {fileID: 592114081}
   - {fileID: 3641441443799192765}
   - {fileID: 518391181}
-  - {fileID: 752863798}
