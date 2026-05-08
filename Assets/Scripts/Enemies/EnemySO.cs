@@ -23,6 +23,30 @@ public class EnemySO : ScriptableObject
     [Tooltip("Beyond this distance the tick rate drops to the LOD rate.")]
     public float aiLodDistance = 80f;
 
+    [Header("AI - Line of Sight & Flanking")]
+    [Tooltip("Layers that block sight/bullets AND count as ground for jump detection. Should NOT include the player or enemies.")]
+    public LayerMask obstacleMask = ~0;
+    [Tooltip("How high above the player's feet the LoS ray aims (chest height).")]
+    public float losTargetHeight = 1.0f;
+
+    [Header("AI - Jumping")]
+    public float jumpForce = 6f;
+    public float jumpCooldown = 0.8f;
+
+    [Header("AI - Panic")]
+    [Tooltip("Seconds without line of sight before the enemy switches from simple pursuit to aggressive flanking.")]
+    public float panicTime = 5f;
+    [Tooltip("Speed multiplier (on moveSpeed) when sight is lost but panic hasn't started. >1 = actively hunts faster than normal pursuit.")]
+    public float huntSpeedMult = 1.2f;
+    [Tooltip("Base strafe speed multiplier while panicking (applied to lateralStrength). Lower = calmer side-to-side movement.")]
+    public float aggroStrafeMult = 1.4f;
+    [Tooltip("Seconds AFTER panic begins to reach full desperation (max strafe/backup amplification).")]
+    public float desperationRampTime = 4f;
+    [Tooltip("Maximum extra strafe magnitude added at full desperation. 1.5 = strafe up to 2.5x its base.")]
+    public float desperationStrafeBoost = 1.5f;
+    [Tooltip("Maximum extra backup duration added at full desperation. 1.0 = backup lasts up to 2x as long.")]
+    public float desperationBackupBoost = 1f;
+
     [Header("Weapons")]
     public WeaponSO[] availableWeapons;
     [Tooltip("Extra pause in seconds added between every shot, on top of the weapon's fire rate.")]

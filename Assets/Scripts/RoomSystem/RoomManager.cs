@@ -21,6 +21,13 @@ public class RoomManager : MonoBehaviour
 
     private readonly List<RoomController> _loadedRooms = new();
 
+    // The most recently orphaned exit-door branch (detached from a destroyed
+    // room so its closed visual could plug the surviving room's wall hole).
+    // Kept around for one extra transition, then destroyed when the next
+    // orphan is created — by that point the room it was plugging has itself
+    // been despawned, so the floating door is no longer visible to the player.
+    private GameObject _previousOrphanedDoorBranch;
+
     // =========================================================
     // LIFECYCLE
     // =========================================================
@@ -131,11 +138,21 @@ public class RoomManager : MonoBehaviour
                     branch = branch.parent;
                 branch.SetParent(null, worldPositionStays: true);
 
-                // Leave the closed door in the world permanently — it plugs the
+                // Leave the closed door in the world for now — it plugs the
                 // hole in the surviving room's wall. It's already in DoorState.Sealed
                 // (set when the player opened it), so TryOpen will reject any
                 // future interaction.
                 exitDoor.CloseAndThen(null);
+
+                // Destroy the previous orphan (from the transition before this
+                // one). The room it was plugging is the one being destroyed
+                // right now, so the orphan is no longer visible anywhere the
+                // player can see — safe to remove. This caps the trail at one
+                // surviving door instead of letting it grow unbounded.
+                if (_previousOrphanedDoorBranch != null)
+                    Destroy(_previousOrphanedDoorBranch);
+
+                _previousOrphanedDoorBranch = branch.gameObject;
             }
 
             Destroy(oldRoom.gameObject);
