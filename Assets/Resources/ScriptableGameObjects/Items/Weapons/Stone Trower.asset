@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1939074098b161340afd34e8c26afd7e, type: 3}
-  m_Name: StoneTrower
+  m_Name: Stone Trower
   m_EditorClassIdentifier: 
   isStackable: 0
   maxStackSize: 30

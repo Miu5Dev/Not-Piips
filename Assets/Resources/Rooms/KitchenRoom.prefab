@@ -637,8 +637,8 @@ Transform:
   m_GameObject: {fileID: 4239522525807251667}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.59, y: -1.25, z: 0}
-  m_LocalScale: {x: 16.0554, y: 1.5, z: 1.5}
+  m_LocalPosition: {x: 9.2404, y: -1.25, z: 0}
+  m_LocalScale: {x: 11.355985, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7183513466921500844}
@@ -1211,8 +1211,8 @@ Transform:
   m_GameObject: {fileID: 7312347598406470234}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.70710677, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0.00000047683716, y: -1.25, z: -7.26}
-  m_LocalScale: {x: 16.0554, y: 1.5, z: 1.5}
+  m_LocalPosition: {x: 0.00000047683716, y: -1.25, z: -7.1779}
+  m_LocalScale: {x: 15.891635, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7183513466921500844}
@@ -2623,6 +2623,14 @@ PrefabInstance:
       propertyPath: spawnHeightCheck
       value: 4.02
       objectReference: {fileID: 0}
+    - target: {fileID: 4903150728600232319, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
+      propertyPath: spawnGroundOffset
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4903150728600232319, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
+      propertyPath: groundLayers.m_Bits
+      value: 311
+      objectReference: {fileID: 0}
     - target: {fileID: 8135403930628357009, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
       propertyPath: m_Name
       value: EnemySpawner
@@ -2633,7 +2641,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8713190841943681012, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.2477398
+      value: -1.46
       objectReference: {fileID: 0}
     - target: {fileID: 8713190841943681012, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
       propertyPath: m_LocalPosition.z

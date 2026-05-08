@@ -6,20 +6,14 @@ public class ShootController : MonoBehaviour
 {
     public static ShootController Instance { get; private set; }
 
-    /// <summary>
-    /// False when this component belongs to an enemy.
-    /// Skips singleton registration, UI refresh, and inventory-gated reload.
-    /// </summary>
     public bool IsPlayerController { get; set; } = true;
 
-    [SerializeField] private WeaponSO currentWeapon;
-    [SerializeField] private Transform spawnpoint;
-    [SerializeField] private float hipFireDuration = 0.2f;
-    [SerializeField] private float shotSpawnDelay = 0.06f;
-
+    [SerializeField] private WeaponSO            currentWeapon;
+    [SerializeField] private Transform           spawnpoint;
+    [SerializeField] private float               hipFireDuration = 0.2f;
+    [SerializeField] private float               shotSpawnDelay  = 0.06f;
     [SerializeField] private AimTargetController aimTarget;
-    [SerializeField] private WeaponSO backupWeapon;
-
+    [SerializeField] private WeaponSO            backupWeapon;
 
     [SerializeField] private int _currentMagazineField;
     private int _currentMagazine
@@ -30,28 +24,31 @@ public class ShootController : MonoBehaviour
             if (_currentMagazineField == value) return;
             _currentMagazineField = value;
             if (IsPlayerController)
+            {
                 InventoryGridUI.Instance?.RefreshWeaponAmmoLabels();
+                EquipedWeaponUIController.Instance?.RefreshAmmo();
+            }
         }
     }
     private bool _isReloading;
 
     private float _hipFireTimer;
-    private bool _isHipFiring;
+    private bool  _isHipFiring;
     private float _lastShotTime;
-    private bool _isFireHeld;
-    private bool _canSemiAutoShootAgain = true;
+    private bool  _isFireHeld;
+    private bool  _canSemiAutoShootAgain = true;
 
-    private WaitForSeconds _waitForDelay;
+    private WaitForSeconds             _waitForDelay;
     private OnHipFireStateChangedEvent _hipFireOn;
     private OnHipFireStateChangedEvent _hipFireOff;
 
-    public int CurrentMagazine => _currentMagazine;
-    public int MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
-    public bool IsReloading => _isReloading;
-    public bool IsMagazineEmpty => _currentMagazine <= 0;
-    public WeaponSO CurrentWeapon => currentWeapon;
+    public int      CurrentMagazine => _currentMagazine;
+    public int      MaxMagazineSize => currentWeapon != null ? currentWeapon.maxMagazineSize : 0;
+    public bool     IsReloading     => _isReloading;
+    public bool     IsMagazineEmpty => _currentMagazine <= 0;
+    public WeaponSO CurrentWeapon   => currentWeapon;
+    public float ReloadProgress { get; private set; }
 
-    /// Lets EnemyController set the muzzle transform at runtime.
     public void SetSpawnPoint(Transform t) => spawnpoint = t;
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -62,11 +59,28 @@ public class ShootController : MonoBehaviour
             Instance = this;
 
         _waitForDelay = new WaitForSeconds(shotSpawnDelay);
-        _hipFireOn  = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true };
-        _hipFireOff = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
+        _hipFireOn    = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = true  };
+        _hipFireOff   = new OnHipFireStateChangedEvent { Shooter = transform, IsHipFiring = false };
 
         if (currentWeapon != null)
             _currentMagazine = currentWeapon.maxMagazineSize;
+    }
+
+    private void Start()
+    {
+        if (!IsPlayerController) return;
+
+        WeaponSO weaponToShow = currentWeapon ?? backupWeapon;
+        if (weaponToShow == null) return;
+
+        if (currentWeapon == null)
+            EquipWeapon(backupWeapon);
+
+        EventBus.Raise(new OnWeaponEquipEvent
+        {
+            weaponToEquip = currentWeapon,
+            initialAmmo   = _currentMagazine
+        });
     }
 
     private void Update()
@@ -78,16 +92,33 @@ public class ShootController : MonoBehaviour
             TryShoot();
     }
 
+    // ── Weapon equip event ────────────────────────────────────────────────────
+
+    public void OnWeaponEquip(OnWeaponEquipEvent e)
+    {
+        if (!IsPlayerController) return;
+
+        if (e.weaponToEquip == null)
+        {
+            TryEquipBackup($"Switched to {backupWeapon?.name}");
+            return;
+        }
+
+        EquipWeapon(e.weaponToEquip, e.initialAmmo);
+    }
+
     // ── Equip ─────────────────────────────────────────────────────────────────
 
-    // initialAmmo = -1 → usar maxMagazineSize (comportamiento original)
     public void EquipWeapon(WeaponSO weapon, int initialAmmo = -1)
     {
-        currentWeapon = weapon;
+        currentWeapon    = weapon;
         _currentMagazine = (weapon != null && initialAmmo >= 0)
             ? initialAmmo
             : (weapon != null ? weapon.maxMagazineSize : 0);
         _isReloading = false;
+
+        if (IsPlayerController)
+            EquipedWeaponUIController.Instance?.RefreshAmmo();
     }
 
     // ── Fire input ────────────────────────────────────────────────────────────
@@ -115,7 +146,7 @@ public class ShootController : MonoBehaviour
 
     public void OnFireReleased()
     {
-        _isFireHeld = false;
+        _isFireHeld            = false;
         _canSemiAutoShootAgain = true;
     }
 
@@ -129,10 +160,17 @@ public class ShootController : MonoBehaviour
             return;
         }
         if (_isReloading) return;
-        if (_currentMagazine <= 0) { Reload(); return; }
+
+        if (!currentWeapon.infiniteAmmo)
+        {
+            if (_currentMagazine <= 0) { Reload(); return; }
+        }
+
         if (Time.time < _lastShotTime + (1f / currentWeapon.fireRate)) return;
 
-        _currentMagazine--;
+        if (!currentWeapon.infiniteAmmo)
+            _currentMagazine--;
+
         _lastShotTime = Time.time;
         StartHipFire();
         StartCoroutine(FireAfterDelay());
@@ -146,19 +184,17 @@ public class ShootController : MonoBehaviour
             ? aimTarget.AimPoint
             : spawnpoint.position + spawnpoint.forward * 100f;
 
-        Vector3 baseDir = (aimPoint - spawnpoint.position).normalized;
+        Vector3    baseDir = (aimPoint - spawnpoint.position).normalized;
         Quaternion baseRot = baseDir != Vector3.zero
             ? Quaternion.LookRotation(baseDir)
             : spawnpoint.rotation;
 
         int pellets = Mathf.Max(1, currentWeapon.pellets);
-
         for (int i = 0; i < pellets; i++)
         {
             Quaternion shotRot = currentWeapon.spreadAngle > 0f
                 ? GetSpreadRotation(baseRot, currentWeapon.spreadAngle, currentWeapon.spreadOnlyHorizontal)
                 : baseRot;
-
             SpawnProjectile(shotRot);
         }
     }
@@ -179,28 +215,22 @@ public class ShootController : MonoBehaviour
             currentWeapon.ammo.decalLayers,
             currentWeapon.ammo.impactVFXPrefab,
             firedByPlayer: Instance == this,
-            currentWeapon.ammo.collisionLayers 
+            currentWeapon.ammo.collisionLayers
         );
     }
 
-// ── Reload ──────────────────────────────────────────────────────────────────
+    // ── Reload ────────────────────────────────────────────────────────────────
 
     public void Reload()
     {
         if (_isReloading) return;
         if (currentWeapon == null) return;
+        if (currentWeapon.infiniteAmmo) return;
         if (_currentMagazine >= currentWeapon.maxMagazineSize) return;
-
-        // Arma con ammo infinita: no revisar inventario
-        if (currentWeapon.infiniteAmmo)
-        {
-            StartCoroutine(ReloadCoroutine());
-            return;
-        }
 
         if (IsPlayerController && AmmoInventory.GetCount(currentWeapon.ammo) <= 0)
         {
-            Debug.Log("[ShootController] Sin munición en el inventario.");
+            Debug.Log("[ShootController] No ammo in inventory.");
             if (_currentMagazine <= 0)
                 TryEquipBackup();
             return;
@@ -211,57 +241,58 @@ public class ShootController : MonoBehaviour
 
     private IEnumerator ReloadCoroutine()
     {
-        _isReloading = true;
+        _isReloading   = true;
+        ReloadProgress = 0f; // ← reset al empezar
 
-        float elapsed = 0f;
-        float reloadTime = currentWeapon.reloadTime;
+        float elapsed        = 0f;
+        float duration       = currentWeapon.reloadTime;
+        bool  isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
+        int   fullMag        = currentWeapon.maxMagazineSize;
 
-        // Solo el player ve la animación del crosshair
-        while (elapsed < reloadTime)
+        if (IsPlayerController)
+            EventBus.Raise(new OnReloadEvent { IsReloading = true, Progress = 0f });
+
+        while (elapsed < duration)
         {
-            elapsed += Time.deltaTime;
+            elapsed        += Time.deltaTime;
+            ReloadProgress  = Mathf.Clamp01(elapsed / duration); // ← actualizar propiedad
+
             if (IsPlayerController)
-                EventBus.Raise(new OnReloadEvent(true, elapsed / reloadTime));
+                EventBus.Raise(new OnReloadEvent
+                {
+                    IsReloading = true,
+                    Progress    = ReloadProgress // ← usar la propiedad directamente
+                });
             yield return null;
         }
 
-        // ── Lógica de munición (sin cambios) ─────────────────────────────────
+        ReloadProgress = 1f; // ← completo
+
         if (IsPlayerController)
         {
-            bool isShotgunStyle = currentWeapon.shotType == ShotType.Manual;
-
-            if (currentWeapon.infiniteAmmo)
+            int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
+            if (consumed > 0)
             {
                 _currentMagazine = isShotgunStyle
-                    ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
-                    : currentWeapon.maxMagazineSize;
+                    ? Mathf.Min(_currentMagazine + 1, fullMag)
+                    : fullMag;
             }
             else
             {
-                int consumed = AmmoInventory.Consume(currentWeapon.ammo, 1);
-                if (consumed > 0)
-                {
-                    _currentMagazine = isShotgunStyle
-                        ? Mathf.Min(_currentMagazine + 1, currentWeapon.maxMagazineSize)
-                        : currentWeapon.maxMagazineSize;
-                }
-                else
-                {
-                    Debug.Log("[ShootController] Sin munición en el inventario.");
-                }
+                Debug.Log("[ShootController] No ammo in inventory.");
             }
         }
         else
         {
-            _currentMagazine = currentWeapon.maxMagazineSize;
+            _currentMagazine = fullMag;
         }
 
-        _isReloading = false;
-
         if (IsPlayerController)
-            EventBus.Raise(new OnReloadEvent(false, 0f));
+            EventBus.Raise(new OnReloadEvent { IsReloading = false, Progress = 1f });
+
+        _isReloading = false;
     }
-    
+
     // ── Spread & Hip fire ─────────────────────────────────────────────────────
 
     private static Quaternion GetSpreadRotation(Quaternion baseRotation, float spreadAngle, bool horizontalOnly)
@@ -288,7 +319,6 @@ public class ShootController : MonoBehaviour
     private void HandleHipFireTimer()
     {
         if (!_isHipFiring) return;
-
         _hipFireTimer -= Time.deltaTime;
         if (_hipFireTimer <= 0f)
         {
@@ -303,16 +333,15 @@ public class ShootController : MonoBehaviour
     {
         _currentMagazine = Mathf.Min(_currentMagazine + amount, currentWeapon.maxMagazineSize);
     }
-    
+
     // ── Backup weapon ─────────────────────────────────────────────────────────
 
-    private void TryEquipBackup()
+    private void TryEquipBackup(string reason = null)
     {
         if (backupWeapon == null) return;
-        if (currentWeapon == backupWeapon) return; // ya está equipado el backup
+        if (currentWeapon == backupWeapon) return;
 
         InventoryEquipHandler.Instance?.UnequipCurrent();
-
         EquipWeapon(backupWeapon);
 
         EventBus.Raise(new OnWeaponEquipEvent
@@ -321,7 +350,8 @@ public class ShootController : MonoBehaviour
             initialAmmo   = backupWeapon.maxMagazineSize
         });
 
-        InventoryDragHandler.Instance?.ShowPopup($"No ammo! Switched to {backupWeapon.name}");
-        Debug.Log($"[ShootController] Sin munición. Cambiando a arma backup: {backupWeapon.name}");
+        string msg = reason ?? $"No ammo! Switched to {backupWeapon.name}";
+        InventoryDragHandler.Instance?.ShowPopup(msg);
+        Debug.Log($"[ShootController] Switched to backup: {backupWeapon.name}. Reason: {reason ?? "no ammo"}");
     }
 }

@@ -50,6 +50,17 @@ public class InventoryGrid
         Mark(origin, w, h, false);
     }
 
+    // FIX: exposes cell state so InventoryGridUI can validate / rebuild
+    public bool IsOccupied(int col, int row) => _occupied[col, row];
+
+    // Resets all cells to empty
+    public void Clear()
+    {
+        for (int r = 0; r < _rows; r++)
+            for (int c = 0; c < _cols; c++)
+                _occupied[c, r] = false;
+    }
+
     bool TryFind(int w, int h, out Vector2Int origin)
     {
         for (int row = 0; row <= _rows - h; row++)
@@ -71,5 +82,13 @@ public class InventoryGrid
         for (int r = o.y; r < o.y + h; r++)
             for (int c = o.x; c < o.x + w; c++)
                 _occupied[c, r] = val;
+    }
+
+    public bool HasSpace(Vector2Int size)
+    {
+        if (size.x <= 0 || size.y <= 0) return false;
+        if (TryFind(size.x, size.y, out _)) return true;
+        if (size.x != size.y && TryFind(size.y, size.x, out _)) return true;
+        return false;
     }
 }

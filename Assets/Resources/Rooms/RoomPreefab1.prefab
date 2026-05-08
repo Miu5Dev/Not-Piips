@@ -280,7 +280,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawners:
   - {fileID: 3403900667734708868}
-  requireEnemiesCleared: 0
+  requireEnemiesCleared: 1
 --- !u!1 &4404785602548736355
 GameObject:
   m_ObjectHideFlags: 0
@@ -1608,6 +1608,14 @@ PrefabInstance:
     - target: {fileID: 4903150728600232319, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
       propertyPath: spawnHeightCheck
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4903150728600232319, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
+      propertyPath: spawnGroundOffset
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4903150728600232319, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
+      propertyPath: groundLayers.m_Bits
+      value: 311
       objectReference: {fileID: 0}
     - target: {fileID: 8135403930628357009, guid: b0d63a3054e3bc9438d048c82be0faa4, type: 3}
       propertyPath: m_Name
