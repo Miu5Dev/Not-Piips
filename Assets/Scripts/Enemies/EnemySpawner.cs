@@ -15,6 +15,12 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnRadius = 20f;
     [Tooltip("How many units above the spawner's Y to start the ground raycast. Keep this low so low-ceiling rooms don't spawn enemies on roofs.")]
     [SerializeField] private float spawnHeightCheck = 4f;
+    [Tooltip("Only these layers count as valid ground. Assign your Ground layer here to avoid hitting enemies, triggers or props.")]
+    [SerializeField] private LayerMask groundLayers = ~0;
+    [Tooltip("How many random points to try before falling back to the spawner's own position.")]
+    [SerializeField] private int maxSpawnAttempts = 10;
+    [Tooltip("Vertical offset added to the spawn point so the enemy doesn't clip through the floor. Adjust to match the enemy's pivot height.")]
+    [SerializeField] private float spawnGroundOffset = 0.1f;
 
     [Header("Wave Settings")]
     [SerializeField] private int   enemiesPerWave    = 5;
@@ -27,7 +33,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private Transform playerTransform;
 
     [Header("Room Settings")]
-    [Tooltip("Uncheck when this spawner lives inside a room prefab — RoomController will call StartSpawning() instead.")]
+    [Tooltip("Disable when this spawner lives inside a room prefab — RoomController will call StartSpawning() instead. Enabling this AND having RoomController call StartSpawning() will double-spawn enemies.")]
     [SerializeField] private bool autoStart = true;
 
     // Invoked once when all waves are done (only fires if infiniteWaves = false).
@@ -37,6 +43,7 @@ public class EnemySpawner : MonoBehaviour
     private int  _currentWave;
     private int  _aliveEnemies;
     private bool _waveInProgress;
+    private bool _started;
 
     // =========================================================
     // LIFECYCLE
@@ -51,6 +58,9 @@ public class EnemySpawner : MonoBehaviour
     /// <summary>Called by RoomController after setting the player transform.</summary>
     public void StartSpawning()
     {
+        if (_started) return;
+        _started = true;
+
         if (enemyTypes == null || enemyTypes.Length == 0)
         {
             Debug.LogWarning($"[EnemySpawner] No enemy types assigned on {gameObject.name}.");
@@ -65,6 +75,9 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
+        _currentWave  = 0;
+        _aliveEnemies = 0;
+
         StartCoroutine(WaveLoop());
     }
 
@@ -78,7 +91,7 @@ public class EnemySpawner : MonoBehaviour
         {
             yield return StartCoroutine(SpawnWave());
 
-            // Wait until all enemies in the wave are dead
+            // Wait until every enemy from this wave is dead before moving on
             yield return new WaitUntil(() => _aliveEnemies <= 0);
             yield return new WaitForSeconds(timeBetweenWaves);
 
@@ -91,7 +104,6 @@ public class EnemySpawner : MonoBehaviour
     private IEnumerator SpawnWave()
     {
         _waveInProgress = true;
-        _aliveEnemies   = 0;
 
         for (int i = 0; i < enemiesPerWave; i++)
         {
@@ -120,24 +132,33 @@ public class EnemySpawner : MonoBehaviour
 
     private Vector3 FindSpawnPosition()
     {
-        Vector2 circle = Random.insideUnitCircle * spawnRadius;
+        float castDistance = spawnHeightCheck + 5f;
 
-        // Start just above the spawner's own height — avoids hitting ceilings in low rooms
-        Vector3 origin = transform.position + new Vector3(circle.x, spawnHeightCheck, circle.y);
+        for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
+        {
+            Vector2 circle = Random.insideUnitCircle * spawnRadius;
 
-        // Cast down only far enough to find a floor near the spawner's level
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, spawnHeightCheck + 3f))
-            return hit.point;
+            // Origin starts above the expected floor level so the ray travels downward through geometry
+            Vector3 origin = transform.position + new Vector3(circle.x, spawnHeightCheck, circle.y);
 
-        // Fallback: spawner's XZ offset at spawner height
-        return transform.position + new Vector3(circle.x, 0f, circle.y);
+            if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, castDistance, groundLayers))
+            {
+                // Reject walls and ceilings — only surfaces pointing mostly upward are valid floors
+                if (hit.normal.y > 0.5f)
+                    return hit.point + Vector3.up * spawnGroundOffset;
+            }
+        }
+
+        // Fallback: spawner's own position (should always have solid ground beneath it)
+        Debug.LogWarning($"[EnemySpawner] Could not find a valid spawn position after {maxSpawnAttempts} attempts on {gameObject.name}.");
+        return transform.position + Vector3.up * spawnGroundOffset;
     }
 
     public void SetPlayerTransform(Transform target)
     {
         playerTransform = target;
     }
-    
+
     // =========================================================
     // EDITOR GIZMO
     // =========================================================
@@ -145,8 +166,23 @@ public class EnemySpawner : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
+        // Spawn radius ring
         Gizmos.color = new Color(0.2f, 1f, 0.3f, 0.25f);
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
+
+        // Raycast origin height indicator
+        Gizmos.color = new Color(1f, 1f, 0f, 0.6f);
+        Gizmos.DrawWireSphere(transform.position + Vector3.up * spawnHeightCheck, 0.2f);
+
+        // Raycast total length visualized as a vertical line
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.5f);
+        Vector3 rayStart = transform.position + Vector3.up * spawnHeightCheck;
+        Vector3 rayEnd   = rayStart + Vector3.down * (spawnHeightCheck + 5f);
+        Gizmos.DrawLine(rayStart, rayEnd);
+
+        // Ground offset indicator at spawner position
+        Gizmos.color = new Color(0.3f, 0.8f, 1f, 0.8f);
+        Gizmos.DrawWireSphere(transform.position + Vector3.up * spawnGroundOffset, 0.15f);
     }
 #endif
 }

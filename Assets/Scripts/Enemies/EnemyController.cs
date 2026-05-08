@@ -7,22 +7,22 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour
 {
     // ── Cached references ──────────────────────────────────────────────────
-    private EnemySO _data;
-    private Transform _player;
-    private Rigidbody _rb;
-    private Transform _muzzle;
-    private GameObject _modelRoot;
-    private ShootController _shootController;
+    private EnemySO          _data;
+    private Transform        _player;
+    private Rigidbody        _rb;
+    private Transform        _muzzle;
+    private GameObject       _modelRoot;
+    private ShootController  _shootController;
     private HealthController _healthController;
 
     // ── AI desired state ───────────────────────────────────────────────────
-    private Vector3 _desiredVelocity;
+    private Vector3    _desiredVelocity;
     private Quaternion _targetRotation;
 
     // ── Runtime state ──────────────────────────────────────────────────────
-    private float _uniqueOffset;
-    private float _lastShotTime;
-    private bool _alive;
+    private float         _uniqueOffset;
+    private float         _lastShotTime;
+    private bool          _alive;
     private System.Action _onDeath;
 
     // ── Tick constants ─────────────────────────────────────────────────────
@@ -37,11 +37,11 @@ public class EnemyController : MonoBehaviour
 
     private void Awake()
     {
-        _rb = GetComponent<Rigidbody>();
+        _rb             = GetComponent<Rigidbody>();
         _rb.constraints = RigidbodyConstraints.FreezeRotation;
         _targetRotation = transform.rotation;
 
-        _shootController = GetComponent<ShootController>();
+        _shootController                    = GetComponent<ShootController>();
         _shootController.IsPlayerController = false;
 
         _healthController = GetComponent<HealthController>();
@@ -52,16 +52,14 @@ public class EnemyController : MonoBehaviour
     private void OnEnable()
     {
         MinimapRenderer.Register(this);
-        EventBus.Subscribe<OnDieEvent>(OnDieEventReceived);
     }
 
     private void OnDisable()
     {
         MinimapRenderer.Unregister(this);
-        EventBus.Unsubscribe<OnDieEvent>(OnDieEventReceived);
         _shootController?.OnFireReleased();
         StopAllCoroutines();
-        _alive = false;
+        _alive           = false;
         _desiredVelocity = Vector3.zero;
     }
 
@@ -85,10 +83,10 @@ public class EnemyController : MonoBehaviour
 
     public void Initialize(EnemySO data, Transform player, System.Action onDeath = null)
     {
-        _data    = data;
-        _player  = player;
-        _onDeath = onDeath;
-        _alive   = true;
+        _data         = data;
+        _player       = player;
+        _onDeath      = onDeath;
+        _alive        = true;
         _uniqueOffset = Random.Range(0f, Mathf.PI * 2f);
         _lastShotTime = Time.time + Random.Range(0f, 1f);
 
@@ -112,14 +110,13 @@ public class EnemyController : MonoBehaviour
     public void SetModel(GameObject modelRoot) => _modelRoot = modelRoot;
 
     // =========================================================
-    // DEATH EVENT (EventBus)
+    // DEATH EVENT
     // =========================================================
 
-    private void OnDieEventReceived(OnDieEvent e)
+    public void OnDieEventReceived(OnDieEvent e)
     {
         if (e.murderedObject != gameObject) return;
         if (!_alive) return;
-
         StartCoroutine(Die());
     }
 
@@ -141,8 +138,9 @@ public class EnemyController : MonoBehaviour
 
                 float tick = dist > _data.aiLodDistance
                     ? LodTick
-                    : Mathf.Clamp(Random.Range(TickMin, TickMax)
-                        + Random.Range(-TickJitter, TickJitter), TickMin, TickMax + TickJitter);
+                    : Mathf.Clamp(
+                        Random.Range(TickMin, TickMax) + Random.Range(-TickJitter, TickJitter),
+                        TickMin, TickMax + TickJitter);
 
                 yield return new WaitForSeconds(tick);
             }
@@ -163,19 +161,23 @@ public class EnemyController : MonoBehaviour
         if (toPlayer != Vector3.zero)
             _targetRotation = Quaternion.LookRotation(toPlayer);
 
-        float lateralAmount = Mathf.Sin(Time.time * _data.wanderFrequency + _uniqueOffset)
-            * _data.lateralStrength;
-        Vector3 right = transform.right;
+        float   lateralAmount = Mathf.Sin(Time.time * _data.wanderFrequency + _uniqueOffset)
+                                * _data.lateralStrength;
+        Vector3 right         = transform.right;
 
         if (dist > _data.fromPlayerMax)
+        {
             _desiredVelocity = toPlayer * _data.moveSpeed + right * (lateralAmount * 0.25f);
+        }
         else if (dist < _data.fromPlayerMin)
         {
-            float urgency = 1f + Mathf.Clamp01(1f - dist / _data.fromPlayerMin);
+            float urgency    = 1f + Mathf.Clamp01(1f - dist / _data.fromPlayerMin);
             _desiredVelocity = -toPlayer * (_data.moveSpeed * urgency) + right * (lateralAmount * 0.5f);
         }
         else
+        {
             _desiredVelocity = right * lateralAmount;
+        }
     }
 
     // =========================================================
@@ -191,9 +193,9 @@ public class EnemyController : MonoBehaviour
 
         Vector3 dir = (_player.position + Vector3.up * 0.5f - _muzzle.position).normalized;
         if (dir == Vector3.zero) return;
-        _muzzle.rotation = Quaternion.LookRotation(dir);
 
-        _lastShotTime = Time.time;
+        _muzzle.rotation = Quaternion.LookRotation(dir);
+        _lastShotTime    = Time.time;
         _shootController.OnFirePressed();
         _shootController.OnFireReleased();
     }
@@ -204,21 +206,39 @@ public class EnemyController : MonoBehaviour
 
     private IEnumerator Die()
     {
-        _alive = false;
+        // Cache local — prevents OnDisable from nulling _data mid-coroutine
+        EnemySO enemyData = _data;
+
+        _alive           = false;
         _desiredVelocity = Vector3.zero;
 
-        if (_data.freezeOnDeath)
+        if (enemyData.freezeOnDeath)
         {
-            _rb.linearVelocity = Vector3.zero;
+            _rb.linearVelocity  = Vector3.zero;
             _rb.angularVelocity = Vector3.zero;
-            _rb.isKinematic = true;
+            _rb.isKinematic     = true;
         }
 
-        if (_data.deathEffect != null)
+        if (enemyData.deathEffect != null)
         {
-            var fx = Instantiate(_data.deathEffect, transform.position, Quaternion.identity);
+            var fx = Instantiate(enemyData.deathEffect, transform.position, Quaternion.identity);
             Destroy(fx, 5f);
         }
+
+        // ── Loot drop ──────────────────────────────────────────────────────
+        if (enemyData.dropPrefab != null && Random.value <= enemyData.dropChance)
+        {
+            var drop = Instantiate(
+                enemyData.dropPrefab,
+                transform.position + Vector3.up * 0.5f,
+                Quaternion.identity
+            );
+
+            var visual = drop.GetComponent<WorldItemVisual>();
+            if (visual != null)
+                visual.LaunchDrop(enemyData.dropUpForce);
+        }
+        // ──────────────────────────────────────────────────────────────────
 
         _onDeath?.Invoke();
         _onDeath = null;

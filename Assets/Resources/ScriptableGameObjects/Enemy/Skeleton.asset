@@ -27,3 +27,6 @@ MonoBehaviour:
   poolSize: 3
   deathEffect: {fileID: 8996121115574778785, guid: 8cf1010686a94eb458fcba5e250b987c, type: 3}
   freezeOnDeath: 1
+  dropPrefab: {fileID: 1689194692871180744, guid: f006a42f9b931c547bfae607b0714a93, type: 3}
+  dropChance: 1
+  dropUpForce: 3

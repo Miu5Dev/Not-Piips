@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 610305915994700588}
   - component: {fileID: 255018011708492796}
   - component: {fileID: 1319883420808856695}
+  - component: {fileID: -9126717464056130460}
+  - component: {fileID: 2004225245016659070}
   m_Layer: 3
   m_Name: RandomItemPrefab
   m_TagString: Untagged
@@ -149,6 +151,13 @@ MonoBehaviour:
   bobHeight: 0.15
   bobSpeed: 1.8
   groundOffset: 0.6
+  useDropPhysics: 0
+  dropUpForce: 3
+  dropSpinTorque: 2
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  physicsCollider: {fileID: 0}
   faceCamera: 1
   fitPadding: 0.85
   weaponColor: {r: 1, g: 0.85, b: 0, a: 1}
@@ -156,3 +165,51 @@ MonoBehaviour:
   healthColor: {r: 0.3, g: 0.9, b: 0.3, a: 1}
   shieldColor: {r: 0.3, g: 0.6, b: 1, a: 1}
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!135 &-9126717464056130460
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689194692871180744}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 192
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &2004225245016659070
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1689194692871180744}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 122
+  m_CollisionDetection: 0
