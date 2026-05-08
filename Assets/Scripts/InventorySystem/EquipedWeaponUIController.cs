@@ -6,11 +6,11 @@ public class EquipedWeaponUIController : MonoBehaviour
 {
     public static EquipedWeaponUIController Instance { get; private set; }
 
-    public TMP_Text Magazines;
-    public TMP_Text Bullets;
-
-    public Image currentWeaponImage;
-    public Image AmmoImage;
+    [Header("Weapon Info")]
+    public TMP_Text  Magazines;
+    public TMP_Text  Bullets;
+    public Image     currentWeaponImage;
+    public Image     AmmoImage;
 
     void Awake()
     {
@@ -19,30 +19,41 @@ public class EquipedWeaponUIController : MonoBehaviour
 
     public void UpdateDisplay(OnWeaponEquipEvent e)
     {
+        if (e.weaponToEquip == null) return;
+
         currentWeaponImage.sprite = e.weaponToEquip.icon;
-        AmmoImage.sprite          = e.weaponToEquip.ammo.icon;
+
+        if (e.weaponToEquip.ammo != null)
+            AmmoImage.sprite = e.weaponToEquip.ammo.icon;
 
         RefreshAmmo();
     }
 
-    /// Called by ShootController._currentMagazine setter (via InventoryGridUI)
-    /// and also on equip. Reads live values from ShootController + AmmoInventory.
     public void RefreshAmmo()
     {
         if (ShootController.Instance == null) return;
 
         int inMag  = ShootController.Instance.CurrentMagazine;
         int maxMag = ShootController.Instance.MaxMagazineSize;
+
         Bullets.text = $"{inMag}";
 
         WeaponSO weapon = ShootController.Instance.CurrentWeapon;
-        if (weapon == null) { Magazines.text = "—"; return; }
 
-        if (weapon.infiniteAmmo) { Magazines.text = "∞"; return; }
+        if (weapon == null)
+        {
+            Magazines.text = "—";
+            return;
+        }
+
+        if (weapon.infiniteAmmo)
+        {
+            Magazines.text = "∞";
+            return;
+        }
 
         if (weapon.ammo != null && InventoryGridUI.Instance != null)
         {
-            // Contar directamente del grid — fuente de verdad única
             int reserve = 0;
             foreach (var item in InventoryGridUI.Instance.GetAllItems())
             {

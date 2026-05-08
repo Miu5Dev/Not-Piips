@@ -6,8 +6,8 @@ public class InventoryDragHandler : MonoBehaviour
 {
     public static InventoryDragHandler Instance { get; private set; }
 
-    [SerializeField] Color  validColor   = new Color(0.35f, 1f,    0.35f, 0.85f);
-    [SerializeField] Color  invalidColor = new Color(1f,    0.25f, 0.25f, 0.85f);
+    [SerializeField] Color  validColor   = new Color(0.35f, 1f, 0.35f, 0.85f);
+    [SerializeField] Color  invalidColor = new Color(1f, 0.25f, 0.25f, 0.85f);
     [SerializeField] string invalidMsg   = "You can not place it here";
     [SerializeField] float  popupSeconds = 1.5f;
 
@@ -55,7 +55,7 @@ public class InventoryDragHandler : MonoBehaviour
         var go = new GameObject("InvalidPopup", typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(transform, false);
 
-        var rt              = go.GetComponent<RectTransform>();
+        var rt = go.GetComponent<RectTransform>();
         rt.anchorMin        = new Vector2(0.5f, 1f);
         rt.anchorMax        = new Vector2(0.5f, 1f);
         rt.pivot            = new Vector2(0.5f, 0f);
@@ -72,10 +72,9 @@ public class InventoryDragHandler : MonoBehaviour
         go.SetActive(false);
     }
 
-    public void ShowPopup(string msg)
+    public void ShowPopup(string message)
     {
-        if (_popupCo != null) StopCoroutine(_popupCo);
-        _popupCo = StartCoroutine(PopupRoutine(msg));
+        PopupManager.Instance?.Show(message);
     }
 
     IEnumerator PopupRoutine(string msg)
@@ -134,6 +133,15 @@ public class InventoryDragHandler : MonoBehaviour
     }
 
     public void SetJustPlaced() => _justPlaced = true;
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    void UnequipIfNeeded(InventoryItemUI view)
+    {
+        if (InventoryEquipHandler.Instance == null) return;
+        if (InventoryEquipHandler.Instance.EquippedItem == view)
+            InventoryEquipHandler.Instance.UnequipCurrent();
+    }
 
     // ── Begin drag ────────────────────────────────────────────────────────
 
@@ -216,11 +224,39 @@ public class InventoryDragHandler : MonoBehaviour
         if (grid.IsMouseOver(grid.DiscardSlot, mousePos))
         {
             Debug.Log($"[Inventory] Discarded {_held.Item.name}.");
+            UnequipIfNeeded(_held);
             StopBlink();
             Destroy(_held.gameObject);
             _held = null;
             return;
         }
+
+        // ── Wildcard drop / swap ──────────────────────────────────────────
+        if (grid.IsMouseOver(grid.WildcardSlot, mousePos))
+        {
+            if (grid.WildcardEmpty)
+            {
+                UnequipIfNeeded(_held);
+                StopBlink();
+                grid.PlaceInWildcard(_held);
+                _held       = null;
+                _justPlaced = true;
+            }
+            else
+            {
+                InventoryItemUI previous = grid.GetWildcardItem();
+                UnequipIfNeeded(_held);
+                StopBlink();
+                grid.FreeFromWildcard(previous);
+                previous.RestoreFromWildcard();
+                grid.PlaceInWildcard(_held);
+                _held           = previous;
+                _isFromWildcard = true;
+                _held.transform.SetAsLastSibling();
+            }
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
 
         int w = _held.Rotated ? _held.Item.size.y : _held.Item.size.x;
         int h = _held.Rotated ? _held.Item.size.x : _held.Item.size.y;
@@ -229,10 +265,9 @@ public class InventoryDragHandler : MonoBehaviour
         if (rawCell.HasValue)
         {
             int col  = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
-            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
+            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows - h));
             var snap = new Vector2Int(col, row);
 
-            // ── Stack check ───────────────────────────────────────────────
             if (_held.Item != null && _held.Item.isStackable && grid.TryStackOnto(_held))
             {
                 StopBlink();
@@ -241,7 +276,6 @@ public class InventoryDragHandler : MonoBehaviour
                 _justPlaced = true;
                 return;
             }
-            // ─────────────────────────────────────────────────────────────
 
             if (grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated))
             {
@@ -286,11 +320,39 @@ public class InventoryDragHandler : MonoBehaviour
         if (grid.IsMouseOver(grid.DiscardSlot, screenPos))
         {
             Debug.Log($"[Inventory] Discarded {_held.Item.name}.");
+            UnequipIfNeeded(_held);
             StopBlink();
             Destroy(_held.gameObject);
             _held = null;
             return;
         }
+
+        // ── Wildcard drop / swap ──────────────────────────────────────────
+        if (grid.IsMouseOver(grid.WildcardSlot, screenPos))
+        {
+            if (grid.WildcardEmpty)
+            {
+                UnequipIfNeeded(_held);
+                StopBlink();
+                grid.PlaceInWildcard(_held);
+                _held       = null;
+                _justPlaced = true;
+            }
+            else
+            {
+                InventoryItemUI previous = grid.GetWildcardItem();
+                UnequipIfNeeded(_held);
+                StopBlink();
+                grid.FreeFromWildcard(previous);
+                previous.RestoreFromWildcard();
+                grid.PlaceInWildcard(_held);
+                _held           = previous;
+                _isFromWildcard = true;
+                _held.transform.SetAsLastSibling();
+            }
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
 
         int w = _held.Rotated ? _held.Item.size.y : _held.Item.size.x;
         int h = _held.Rotated ? _held.Item.size.x : _held.Item.size.y;
@@ -299,10 +361,9 @@ public class InventoryDragHandler : MonoBehaviour
         if (rawCell.HasValue)
         {
             int col  = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
-            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
+            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows - h));
             var snap = new Vector2Int(col, row);
 
-            // ── Stack check ───────────────────────────────────────────────
             if (_held.Item != null && _held.Item.isStackable && grid.TryStackOnto(_held))
             {
                 StopBlink();
@@ -311,7 +372,6 @@ public class InventoryDragHandler : MonoBehaviour
                 _justPlaced = true;
                 return;
             }
-            // ─────────────────────────────────────────────────────────────
 
             if (grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated))
             {
@@ -363,6 +423,15 @@ public class InventoryDragHandler : MonoBehaviour
             return;
         }
 
+        // ── Wildcard hover feedback ───────────────────────────────────────
+        if (grid.IsMouseOver(grid.WildcardSlot, mousePos))
+        {
+            _held.FollowScreen(mousePos);
+            if (!_blinking) _held.SetDragColor(validColor); // siempre válido, hay swap
+            return;
+        }
+        // ─────────────────────────────────────────────────────────────────
+
         int w = _held.Rotated ? _held.Item.size.y : _held.Item.size.x;
         int h = _held.Rotated ? _held.Item.size.x : _held.Item.size.y;
         Vector2Int? rawCell = grid.GetCellFromScreen(mousePos);
@@ -370,7 +439,7 @@ public class InventoryDragHandler : MonoBehaviour
         if (rawCell.HasValue)
         {
             int col  = Mathf.Clamp(rawCell.Value.x - w / 2, 0, Mathf.Max(0, grid.Columns - w));
-            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows    - h));
+            int row  = Mathf.Clamp(rawCell.Value.y - h / 2, 0, Mathf.Max(0, grid.Rows - h));
             var snap = new Vector2Int(col, row);
 
             bool valid = grid.IsValidPlacement(_held.Item.size, snap, _held.Rotated);
