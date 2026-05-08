@@ -16,7 +16,7 @@ MonoBehaviour:
   maxStackSize: 30
   weight: 5
   size: {x: 5, y: 1}
-  icon: {fileID: 21300000, guid: c43f85e6b1a4afc4bb5017e1bcd80039, type: 3}
+  icon: {fileID: -650138913, guid: 12056472b71af1a4a86433f657a9ef8f, type: 3}
   weaponType: 4
   shotType: 2
   ammo: {fileID: 11400000, guid: abbe7be33294ecc48980aba131e0278b, type: 2}

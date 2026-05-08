@@ -49,12 +49,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6cc1f898d04d91b4db418336eddf769b, type: 2}
   spawnRadius: 10.8
   spawnHeightCheck: 4
-  enemiesPerWave: 3
+  enemiesPerWave: 1
   timeBetweenSpawns: 2
   timeBetweenWaves: 5
-  infiniteWaves: 0
+  infiniteWaves: 1
   maxWaves: 2
   playerTransform: {fileID: 0}
+  autoStart: 1
 --- !u!114 &3559312527941629181
 MonoBehaviour:
   m_ObjectHideFlags: 0

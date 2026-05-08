@@ -6,10 +6,7 @@ public class InventoryNavigator : MonoBehaviour
     public static InventoryNavigator Instance { get; private set; }
 
     [Header("Input")]
-    [SerializeField] float moveCooldown = 0.12f;
-    // How long after the last WASD press before mouse movement can exit nav mode.
-    // Prevents the mouse cursor micro-jitter from instantly killing _isNavigating
-    // the same frame (or the next) that WASD activates it.
+    [SerializeField] float moveCooldown   = 0.12f;
     [SerializeField] float mouseExitDelay = 0.3f;
 
     [Header("Cursor Colors")]
@@ -20,13 +17,13 @@ public class InventoryNavigator : MonoBehaviour
     [SerializeField] float highlightScale = 0.55f;
 
     [Header("References (optional)")]
-    [SerializeField] InventoryGridUI    gridUI;
+    [SerializeField] InventoryGridUI     gridUI;
     [SerializeField] InventoryDragHandler dragHandler;
 
     enum SlotType { Grid, Wildcard, Discard }
     struct Slot
     {
-        public SlotType  type;
+        public SlotType   type;
         public Vector2Int cell;
     }
 
@@ -35,9 +32,9 @@ public class InventoryNavigator : MonoBehaviour
     float _lastInputTime = -1f;
     bool  _isNavigating;
 
-    InventoryGridUI     _gridUI;
+    InventoryGridUI      _gridUI;
     InventoryDragHandler _dragHandler;
-    Canvas _canvas;
+    Canvas               _canvas;
 
     RectTransform _highlight;
     Image         _highlightImg;
@@ -59,8 +56,8 @@ public class InventoryNavigator : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
-        _gridUI = gridUI != null ? gridUI : GetComponentInParent<InventoryGridUI>();
+        Instance     = this;
+        _gridUI      = gridUI      != null ? gridUI      : GetComponentInParent<InventoryGridUI>();
         if (_gridUI == null) _gridUI = InventoryGridUI.Instance;
         _dragHandler = dragHandler != null ? dragHandler : GetComponent<InventoryDragHandler>();
         if (_dragHandler == null) _dragHandler = InventoryDragHandler.Instance;
@@ -96,8 +93,6 @@ public class InventoryNavigator : MonoBehaviour
         if (_isNavigating)
         {
             UpdateHighlightPosition();
-            // Keep the held item snapped to the navigator cursor every frame so it
-            // doesn't freeze visually between WASD presses.
             if (_dragHandler != null && _dragHandler.IsDragging)
                 PositionHeldItem();
         }
@@ -115,36 +110,36 @@ public class InventoryNavigator : MonoBehaviour
         go.transform.SetParent(_gridUI.PanelRt, false);
         go.transform.SetAsLastSibling();
 
-        _highlight = go.GetComponent<RectTransform>();
-        _highlight.anchorMin = _highlight.anchorMax = new Vector2(0.5f, 0.5f);
-        _highlight.pivot     = new Vector2(0.5f, 0.5f);
+        _highlight            = go.GetComponent<RectTransform>();
+        _highlight.anchorMin  = _highlight.anchorMax = new Vector2(0.5f, 0.5f);
+        _highlight.pivot      = new Vector2(0.5f, 0.5f);
 
-        float size = _gridUI.cellSize * highlightScale;
+        float size            = _gridUI.cellSize * highlightScale;
         _highlight.sizeDelta  = new Vector2(size, size);
         _highlight.localScale = Vector3.one;
 
-        _highlightImg             = go.GetComponent<Image>();
-        _highlightImg.sprite      = null;
-        _highlightImg.color       = cursorNormal;
+        _highlightImg               = go.GetComponent<Image>();
+        _highlightImg.sprite        = null;
+        _highlightImg.color         = cursorNormal;
         _highlightImg.raycastTarget = false;
 
-        var border = new GameObject("Border", typeof(RectTransform), typeof(Image));
+        var border  = new GameObject("Border", typeof(RectTransform), typeof(Image));
         border.transform.SetParent(_highlight, false);
-        var bRt = border.GetComponent<RectTransform>();
+        var bRt     = border.GetComponent<RectTransform>();
         bRt.anchorMin = bRt.anchorMax = new Vector2(0.5f, 0.5f);
         bRt.pivot     = new Vector2(0.5f, 0.5f);
         bRt.sizeDelta = new Vector2(size * 0.9f, size * 0.9f);
-        var bImg = border.GetComponent<Image>();
-        bImg.type         = Image.Type.Sliced;
-        bImg.fillCenter   = false;
-        bImg.color        = Color.white;
+        var bImg      = border.GetComponent<Image>();
+        bImg.type          = Image.Type.Sliced;
+        bImg.fillCenter    = false;
+        bImg.color         = Color.white;
         bImg.raycastTarget = false;
 
         _currentSlot = new Slot { type = SlotType.Grid, cell = Vector2Int.zero };
         UpdateHighlightPosition();
     }
 
-    // ── Events ──────────────────────────────────────────────────────────
+    // ── Events ───────────────────────────────────────────────────────────
 
     public void HandleMove(OnMoveInputEvent e)
     {
@@ -154,7 +149,7 @@ public class InventoryNavigator : MonoBehaviour
 
         if (Time.time - _lastMoveTime < moveCooldown) return;
         _lastMoveTime  = Time.time;
-        _lastInputTime = Time.time;   // stamp used by HandlePointerPosition
+        _lastInputTime = Time.time;
         _isNavigating  = true;
 
         if (_dragHandler.IsDragging)
@@ -183,12 +178,31 @@ public class InventoryNavigator : MonoBehaviour
                     _dragHandler.ShowInvalidPlacement(held);
                 }
             }
+            else if (_currentSlot.type == SlotType.Wildcard)
+            {
+                var held = _dragHandler.HeldItem;
+                if (held != null)
+                {
+                    if (_gridUI.WildcardEmpty)
+                    {
+                        UnequipIfNeeded(held);
+                        _gridUI.PlaceInWildcard(held);
+                        _dragHandler.ClearHeldItem();
+                        _dragHandler.SetJustPlaced();
+                    }
+                    else
+                    {
+                        _dragHandler.ShowInvalidPlacement(held);
+                    }
+                }
+            }
             else if (_currentSlot.type == SlotType.Discard)
             {
                 var held = _dragHandler.HeldItem;
                 if (held != null)
                 {
                     Debug.Log($"[Inventory] Discarded {held.Item.name} (via navigator).");
+                    UnequipIfNeeded(held);
                     Object.Destroy(held.gameObject);
                     _dragHandler.ClearHeldItem();
                 }
@@ -197,8 +211,6 @@ public class InventoryNavigator : MonoBehaviour
         }
         else
         {
-            // Stamp here so mouse micro-jitter can't flip _isNavigating = false
-            // within mouseExitDelay of this pick-up action.
             _lastInputTime = Time.time;
             if (_currentSlot.type == SlotType.Grid)
             {
@@ -225,8 +237,6 @@ public class InventoryNavigator : MonoBehaviour
     {
         if (!e.pressed || !_isNavigating) return;
         _lastInputTime = Time.time;
-        // FIX: Call CancelDrag() directly instead of HandleRightClick(),
-        // which was blocking itself because IsNavigating == true.
         if (_dragHandler.IsDragging)
             _dragHandler.CancelDrag();
     }
@@ -238,20 +248,10 @@ public class InventoryNavigator : MonoBehaviour
         var held = _dragHandler.HeldItem;
         if (held == null || InventoryGridUI.Instance == null) return;
         _lastInputTime = Time.time;
-        // Rotate at the current navigator cell (not held.Origin which can differ
-        // after moving the cursor). PositionHeldItem() then re-evaluates validity
-        // and updates the drag color.
         held.Reposition(_currentSlot.cell, !held.Rotated);
         PositionHeldItem();
     }
 
-    // ── FIX: HandleEquip ─────────────────────────────────────────────────
-    // Previously there was no equip handler in the navigator.
-    // InventoryEquipHandler already falls back to GetCurrentItem() when
-    // HoveredItem is null, so this handler just needs to stamp _lastInputTime
-    // so the equip key press doesn't count as "mouse inactivity" and also
-    // ensures _isNavigating stays true when the equip key is pressed
-    // mid-navigation (without a WASD press happening at the same time).
     public void HandleEquip(OnEquipKeyEvent e)
     {
         if (!e.pressed || !_isNavigating) return;
@@ -266,7 +266,16 @@ public class InventoryNavigator : MonoBehaviour
         _lastMousePos = e.Position;
     }
 
-    // ── Cursor movement ─────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    void UnequipIfNeeded(InventoryItemUI view)
+    {
+        if (InventoryEquipHandler.Instance == null) return;
+        if (InventoryEquipHandler.Instance.EquippedItem == view)
+            InventoryEquipHandler.Instance.UnequipCurrent();
+    }
+
+    // ── Cursor movement ───────────────────────────────────────────────────
 
     void MoveCursor(Vector2 dir)
     {
@@ -325,7 +334,7 @@ public class InventoryNavigator : MonoBehaviour
         else
             dir = new Vector2(0f, Mathf.Sign(dir.y));
 
-        MoveCursor(dir);   // removed redundant MoveCursorInternal wrapper
+        MoveCursor(dir);
         PositionHeldItem();
     }
 
@@ -340,19 +349,19 @@ public class InventoryNavigator : MonoBehaviour
             bool valid = _gridUI.IsValidPlacement(held.Item.size, _currentSlot.cell, held.Rotated);
             held.SetDragColor(valid ? _dragHandler.ValidColor : _dragHandler.InvalidColor);
         }
+        else if (_currentSlot.type == SlotType.Wildcard)
+        {
+            held.FollowScreen(GetCurrentSlotScreenPos());
+            held.SetDragColor(_gridUI.WildcardEmpty ? _dragHandler.ValidColor : _dragHandler.InvalidColor);
+        }
         else if (_currentSlot.type == SlotType.Discard)
         {
             held.FollowScreen(GetCurrentSlotScreenPos());
             held.SetDragColor(new Color(1f, 0.2f, 0.2f, 0.95f));
         }
-        else
-        {
-            held.FollowScreen(GetCurrentSlotScreenPos());
-            held.SetDragColor(_dragHandler.InvalidColor);
-        }
     }
 
-    // ── Highlight positioning ────────────────────────────────────────────
+    // ── Highlight positioning ─────────────────────────────────────────────
 
     void UpdateHighlightPosition()
     {

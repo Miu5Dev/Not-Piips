@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 3674999000026611314}
   - component: {fileID: 678865764307151514}
   - component: {fileID: 7620575707276192158}
+  - component: {fileID: -5328655688371732056}
   m_Layer: 7
   m_Name: '[ENEMY_PREFAB]'
   m_TagString: Untagged
@@ -192,6 +193,7 @@ MonoBehaviour:
   hipFireDuration: 0.2
   shotSpawnDelay: 0.06
   aimTarget: {fileID: 0}
+  backupWeapon: {fileID: 0}
   _currentMagazineField: 0
 --- !u!114 &3674999000026611314
 MonoBehaviour:
@@ -211,6 +213,7 @@ MonoBehaviour:
   maxShield: 0
   weakPointMultiplier: 2
   isDead: 0
+  isPlayer: 0
 --- !u!114 &678865764307151514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -246,6 +249,36 @@ MonoBehaviour:
   smartBindings:
   - targetObject: {fileID: 3674999000026611314}
     methodName: OnHealthChange
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
+--- !u!114 &-5328655688371732056
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5136934130089953423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnDieEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 678865764307151514}
+    methodName: OnDieEventReceived
     paramSources:
     - mode: 3
       eventFieldName: 

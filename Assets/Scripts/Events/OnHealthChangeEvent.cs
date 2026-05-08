@@ -7,9 +7,3 @@ public class OnHealthChangeEvent
     public GameObject target;
     public bool WeakPointHit;
 }
-
-public enum HealthType
-{
-    Health,
-    Shield
-}
