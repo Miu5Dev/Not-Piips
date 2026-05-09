@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34bd92822aa4b8e4aae380692950360c, type: 3}
+  m_Name: TrackingWall
+  m_EditorClassIdentifier: 
+  wallPrefab: {fileID: 7992923159681942436, guid: 750d1ac964f51c343927f500dd896d24, type: 3}
+  spawnInterval: 3.5
+  wallLifetime: 5
+  lerpFromBossToPlayer: 0.5
+  trackSpeed: 1.2

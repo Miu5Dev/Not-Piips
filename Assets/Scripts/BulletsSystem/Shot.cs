@@ -6,6 +6,7 @@ public class Shot : MonoBehaviour
     public int   Damage      { get; private set; }
     public float Speed       { get; private set; }
     public float GravityForce { get; private set; }
+    public float TurnRate    { get; private set; } // deg/sec around world Y; 0 = straight
 
     [Header("Decal")]
     public bool useDecalProjector = true;
@@ -75,13 +76,15 @@ public class Shot : MonoBehaviour
         LayerMask? decalLayerMask    = null,
         GameObject impactVFX         = null,
         bool       firedByPlayer     = false,
-        LayerMask? collisionLayerMask = null)
+        LayerMask? collisionLayerMask = null,
+        float      turnRate           = 0f)
     {
         if (initialized) return;
 
         Damage          = damage;
         Speed           = speed;
         GravityForce    = gravityForce;
+        TurnRate        = turnRate;
         decalPrefab     = decal;
         decalLayers     = decalLayerMask    ?? ~0;
         collisionLayers = collisionLayerMask ?? ~0;
@@ -103,6 +106,10 @@ public class Shot : MonoBehaviour
     private void FixedUpdate()
     {
         if (!initialized) return;
+
+        // Curve: rotate the move direction around world Y. Zero = straight line.
+        if (TurnRate != 0f)
+            moveDirection = Quaternion.AngleAxis(TurnRate * Time.fixedDeltaTime, Vector3.up) * moveDirection;
 
         Vector3 v = rb.linearVelocity;
         v.x = moveDirection.x * Speed;
