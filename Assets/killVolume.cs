@@ -41,7 +41,7 @@ public class KillVolume : MonoBehaviour
         var health = go.GetComponentInParent<HealthController>();
         if (health != null)
         {
-            EventBus.Raise(new OnHealthChangedEvent
+            EventBus.Raise(new OnHealthChangeEvent
             {
                 amount       = -instakillDamage,
                 target       = health.gameObject,

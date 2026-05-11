@@ -9,21 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cca9444d0870014439eb3bb3bc74a7a7, type: 3}
-  m_Name: Rotating Circle
+  m_Script: {fileID: 11500000, guid: d873560722ad8914699c50b23fb30207, type: 3}
+  m_Name: HARDWAVE
   m_EditorClassIdentifier: 
-  startDelay: 3
+  startDelay: 0
   repeatInterval: 1
   activeDuration: 0
   cooldown: 0
-  bulletsPerRing: 50
-  ringCount: 2
-  ringInterval: 0.3
-  arcAngle: 360
-  aimAtPlayer: 0
-  ringRotationOffset: 10
-  continuousSpinSpeed: 15
-  speedScale: -0.5
-  gravity: 0
-  bulletHeight: 0
-  curveTurnRate: 15
+  bulletsPerLine: 40
+  lineWidth: 5
+  skimHeight: 0.75
+  telegraph: 0.6
+  speedScale: 3
+  curveTurnRate: 0

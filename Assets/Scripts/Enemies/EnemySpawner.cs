@@ -13,49 +13,36 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Spawn Area")]
     [SerializeField] private float spawnRadius = 20f;
-    [Tooltip("How many units above the spawner's Y to start the ground raycast.")]
+    [Tooltip("How many units above the spawner's Y to start the ground raycast. Keep this low so low-ceiling rooms don't spawn enemies on roofs.")]
     [SerializeField] private float spawnHeightCheck = 4f;
-    [Tooltip("Only these layers count as valid ground.")]
+    [Tooltip("Only these layers count as valid ground. Assign your Ground layer here to avoid hitting enemies, triggers or props.")]
     [SerializeField] private LayerMask groundLayers = ~0;
     [Tooltip("How many random points to try before falling back to the spawner's own position.")]
     [SerializeField] private int maxSpawnAttempts = 10;
-    [Tooltip("Vertical offset added to the spawn point so the enemy doesn't clip through the floor.")]
+    [Tooltip("Vertical offset added to the spawn point so the enemy doesn't clip through the floor. Adjust to match the enemy's pivot height.")]
     [SerializeField] private float spawnGroundOffset = 0.1f;
 
     [Header("Wave Settings")]
-    [SerializeField] private int enemiesPerWave = 5;
+    [SerializeField] private int   enemiesPerWave    = 5;
     [SerializeField] private float timeBetweenSpawns = 0.3f;
-    [SerializeField] private float timeBetweenWaves = 5f;
-    [SerializeField] private bool infiniteWaves = true;
-    [SerializeField] private int maxWaves = 5;
+    [SerializeField] private float timeBetweenWaves  = 5f;
+    [SerializeField] private bool  infiniteWaves     = true;
+    [SerializeField] private int   maxWaves          = 5;
 
     [Header("References")]
     [SerializeField] private Transform playerTransform;
 
     [Header("Room Settings")]
-    [Tooltip("Disable when this spawner lives inside a room prefab — RoomController will call StartSpawning() instead.")]
+    [Tooltip("Disable when this spawner lives inside a room prefab — RoomController will call StartSpawning() instead. Enabling this AND having RoomController call StartSpawning() will double-spawn enemies.")]
     [SerializeField] private bool autoStart = true;
 
+    // Invoked once when all waves are done (only fires if infiniteWaves = false).
     public System.Action OnAllCleared;
-    public System.Action OnStateChanged;
 
-    // ── HUD properties — per-wave, progressive ────────────────────────────
-
-    /// <summary>Enemies killed in the CURRENT wave (resets to 0 each new wave).</summary>
-    public int EnemiesKilledThisWave { get; private set; }
-
-    /// <summary>Total enemies in the current wave (= enemiesPerWave).</summary>
-    public int EnemiesPerWave        { get; private set; }
-
-    /// <summary>Current wave (1-based).</summary>
-    public int CurrentWave           { get; private set; }
-
-    /// <summary>Total waves. 0 if infiniteWaves.</summary>
-    public int TotalWaves            { get; private set; }
-
-    // ── Internal state ─────────────────────────────────────────────────────
+    // ── State ─────────────────────────────────────────────────────────────────
     private int  _currentWave;
     private int  _aliveEnemies;
+    private bool _waveInProgress;
     private bool _started;
 
     // =========================================================
@@ -68,6 +55,7 @@ public class EnemySpawner : MonoBehaviour
             StartSpawning();
     }
 
+    /// <summary>Called by RoomController after setting the player transform.</summary>
     public void StartSpawning()
     {
         if (_started) return;
@@ -87,11 +75,6 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        TotalWaves            = infiniteWaves ? 0 : maxWaves;
-        EnemiesPerWave        = enemiesPerWave;
-        CurrentWave           = 1;
-        EnemiesKilledThisWave = 0;
-
         _currentWave  = 0;
         _aliveEnemies = 0;
 
@@ -106,22 +89,13 @@ public class EnemySpawner : MonoBehaviour
     {
         while (infiniteWaves || _currentWave < maxWaves)
         {
-            // Reset per-wave kill counter at the start of each wave
-            EnemiesKilledThisWave = 0;
-            OnStateChanged?.Invoke();
-
             yield return StartCoroutine(SpawnWave());
 
+            // Wait until every enemy from this wave is dead before moving on
             yield return new WaitUntil(() => _aliveEnemies <= 0);
             yield return new WaitForSeconds(timeBetweenWaves);
 
             _currentWave++;
-
-            CurrentWave = infiniteWaves
-                ? _currentWave + 1
-                : Mathf.Min(_currentWave + 1, maxWaves);
-
-            OnStateChanged?.Invoke();
         }
 
         OnAllCleared?.Invoke();
@@ -129,29 +103,27 @@ public class EnemySpawner : MonoBehaviour
 
     private IEnumerator SpawnWave()
     {
+        _waveInProgress = true;
+
         for (int i = 0; i < enemiesPerWave; i++)
         {
             SpawnOne();
             yield return new WaitForSeconds(timeBetweenSpawns);
         }
+
+        _waveInProgress = false;
     }
 
     private void SpawnOne()
     {
-        EnemySO   type  = enemyTypes[Random.Range(0, enemyTypes.Length)];
-        Vector3   spawn = FindSpawnPosition();
+        EnemySO type  = enemyTypes[Random.Range(0, enemyTypes.Length)];
+        Vector3 spawn = FindSpawnPosition();
 
         EnemyController enemy = EnemyPool.Instance.GetEnemy(type);
         enemy.transform.position = spawn;
 
         _aliveEnemies++;
-
-        enemy.Initialize(type, playerTransform, () =>
-        {
-            _aliveEnemies--;
-            EnemiesKilledThisWave++;    // counts up within the current wave only
-            OnStateChanged?.Invoke();
-        });
+        enemy.Initialize(type, playerTransform, () => _aliveEnemies--);
     }
 
     // =========================================================
@@ -165,20 +137,27 @@ public class EnemySpawner : MonoBehaviour
         for (int attempt = 0; attempt < maxSpawnAttempts; attempt++)
         {
             Vector2 circle = Random.insideUnitCircle * spawnRadius;
+
+            // Origin starts above the expected floor level so the ray travels downward through geometry
             Vector3 origin = transform.position + new Vector3(circle.x, spawnHeightCheck, circle.y);
 
             if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, castDistance, groundLayers))
             {
+                // Reject walls and ceilings — only surfaces pointing mostly upward are valid floors
                 if (hit.normal.y > 0.5f)
                     return hit.point + Vector3.up * spawnGroundOffset;
             }
         }
 
+        // Fallback: spawner's own position (should always have solid ground beneath it)
         Debug.LogWarning($"[EnemySpawner] Could not find a valid spawn position after {maxSpawnAttempts} attempts on {gameObject.name}.");
         return transform.position + Vector3.up * spawnGroundOffset;
     }
 
-    public void SetPlayerTransform(Transform target) => playerTransform = target;
+    public void SetPlayerTransform(Transform target)
+    {
+        playerTransform = target;
+    }
 
     // =========================================================
     // EDITOR GIZMO
@@ -187,16 +166,21 @@ public class EnemySpawner : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
+        // Spawn radius ring
         Gizmos.color = new Color(0.2f, 1f, 0.3f, 0.25f);
         Gizmos.DrawWireSphere(transform.position, spawnRadius);
 
+        // Raycast origin height indicator
         Gizmos.color = new Color(1f, 1f, 0f, 0.6f);
         Gizmos.DrawWireSphere(transform.position + Vector3.up * spawnHeightCheck, 0.2f);
 
+        // Raycast total length visualized as a vertical line
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.5f);
         Vector3 rayStart = transform.position + Vector3.up * spawnHeightCheck;
-        Gizmos.DrawLine(rayStart, rayStart + Vector3.down * (spawnHeightCheck + 5f));
+        Vector3 rayEnd   = rayStart + Vector3.down * (spawnHeightCheck + 5f);
+        Gizmos.DrawLine(rayStart, rayEnd);
 
+        // Ground offset indicator at spawner position
         Gizmos.color = new Color(0.3f, 0.8f, 1f, 0.8f);
         Gizmos.DrawWireSphere(transform.position + Vector3.up * spawnGroundOffset, 0.15f);
     }
