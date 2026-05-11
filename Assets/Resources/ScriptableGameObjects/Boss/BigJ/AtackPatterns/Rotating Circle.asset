@@ -18,7 +18,7 @@ MonoBehaviour:
   cooldown: 0
   bulletsPerRing: 50
   ringCount: 2
-  ringInterval: 0.3
+  ringInterval: 0.1
   arcAngle: 360
   aimAtPlayer: 0
   ringRotationOffset: 10
