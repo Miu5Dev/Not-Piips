@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 170bc7458714f4a42beccf6e97900540, type: 3}
-  m_Name: nonstopRun with jump
+  m_Name: majestic patern shotgun
   m_EditorClassIdentifier: 
   duration: 30
   patterns:
-  - {fileID: 11400000, guid: 9100c51d0ab95584c9f6712d4ab8ddc4, type: 2}
-  - {fileID: 11400000, guid: 5c34765313c31c14aa05a0eb616be415, type: 2}
-  weaponOverride: {fileID: 0}
+  - {fileID: 11400000, guid: b95a46b9e4caa944e9001ede679eda77, type: 2}
+  - {fileID: 11400000, guid: 12d2de339e8b28c438b85d6103b2a9c4, type: 2}
+  - {fileID: 11400000, guid: 798d1850afc62fb47b728e7244e146ba, type: 2}
+  weaponOverride: {fileID: 11400000, guid: 00f83c85471b2eb4b846399092a260f9, type: 2}
   phaseDefenses:
-  - {fileID: 11400000, guid: 613a3de4a00293a488829d630e6b6762, type: 2}
+  - {fileID: 11400000, guid: a9d827e5c15c6c34197f8c5c2f12029a, type: 2}

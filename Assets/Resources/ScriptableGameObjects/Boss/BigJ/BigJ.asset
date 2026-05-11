@@ -17,7 +17,7 @@ MonoBehaviour:
   weakPointMultiplier: 3
   defaultWeapon: {fileID: 11400000, guid: 00f83c85471b2eb4b846399092a260f9, type: 2}
   phases:
-  - {fileID: 11400000, guid: d4eb0cd25cb3ede41bcf80dcef9f4ff6, type: 2}
+  - {fileID: 11400000, guid: e2752f2eb28be084aabd1d9d0b63ec89, type: 2}
   passiveDefenses: []
   healthTriggers:
   - healthPercent: 20

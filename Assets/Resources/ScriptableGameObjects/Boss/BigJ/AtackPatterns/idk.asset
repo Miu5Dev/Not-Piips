@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cca9444d0870014439eb3bb3bc74a7a7, type: 3}
-  m_Name: Rotating Circle
+  m_Name: idk
   m_EditorClassIdentifier: 
-  startDelay: 3
+  startDelay: 1
   repeatInterval: 1
   activeDuration: 0
   cooldown: 0
-  bulletsPerRing: 50
-  ringCount: 2
-  ringInterval: 0.3
-  arcAngle: 360
-  aimAtPlayer: 0
-  ringRotationOffset: 10
-  continuousSpinSpeed: 15
-  speedScale: -0.5
+  bulletsPerRing: 10
+  ringCount: 5
+  ringInterval: 0.25
+  arcAngle: 100
+  aimAtPlayer: 1
+  ringRotationOffset: 0
+  continuousSpinSpeed: 0
+  speedScale: 1
   gravity: 0
   bulletHeight: 0
-  curveTurnRate: 15
+  curveTurnRate: 0
