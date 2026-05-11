@@ -7,28 +7,29 @@ public class TrailFader : MonoBehaviour
     {
         if (trail == null) return;
 
-        // Unparent trail from bullet so pool's SetActive(false) doesn't cascade to it
-        trail.transform.SetParent(null, worldPositionStays: true);
-
-        // Stop emitting — existing points will fade naturally over trail.time
-        trail.emitting = false;
-        EnsureFadeGradient(trail);
-
-        // Self-destruct after fade — no positionCount check needed
-        var fader = trail.gameObject.AddComponent<TrailFader>();
-        fader.StartCoroutine(fader.FadeAndDestroy(trail));
-
-        // Attach a fresh clean trail to the bullet for next use
+        // Attach a fresh clean trail to the bullet BEFORE modifying the old trail,
+        // so CopyConfig captures the original gradient rather than the fade-out version.
         GameObject freshGO = new GameObject("Trail");
         freshGO.transform.SetParent(bulletTransform, worldPositionStays: false);
         freshGO.transform.localPosition = Vector3.zero;
         freshGO.transform.localRotation = Quaternion.identity;
 
         TrailRenderer freshTrail = freshGO.AddComponent<TrailRenderer>();
-        CopyConfig(trail, freshTrail);  // copy config only, no positions
+        CopyConfig(trail, freshTrail);
         freshTrail.Clear();
         freshTrail.emitting = false;
         freshGO.SetActive(false);       // OnEnable will activate it
+
+        // Unparent old trail from bullet so pool's SetActive(false) doesn't cascade to it
+        trail.transform.SetParent(null, worldPositionStays: true);
+
+        // Stop emitting — existing points will fade naturally over trail.time
+        trail.emitting = false;
+        EnsureFadeGradient(trail);
+
+        // Self-destruct after fade
+        var fader = trail.gameObject.AddComponent<TrailFader>();
+        fader.StartCoroutine(fader.FadeAndDestroy(trail));
     }
 
     private IEnumerator FadeAndDestroy(TrailRenderer t)
@@ -43,7 +44,7 @@ public class TrailFader : MonoBehaviour
         dst.widthCurve        = src.widthCurve;
         dst.widthMultiplier   = src.widthMultiplier;
         dst.colorGradient     = src.colorGradient;
-        dst.material          = src.material;
+        dst.sharedMaterial    = src.sharedMaterial;
         dst.minVertexDistance = src.minVertexDistance;
         dst.textureMode       = src.textureMode;
         dst.alignment         = src.alignment;
