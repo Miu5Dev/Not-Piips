@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -32,7 +33,7 @@ public class BossBarManager : MonoBehaviour
 
             EventBus.Raise(new OnPingEvent()
             {
-                sender = this.gameObject
+                sender = transform.root.gameObject,
             });
         }
     }
