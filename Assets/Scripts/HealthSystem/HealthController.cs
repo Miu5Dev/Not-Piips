@@ -11,13 +11,14 @@ public class HealthController : MonoBehaviour
 
     public bool isDead = false;
     public bool isPlayer = false;
+    public bool isInvincible = false;
 
     private int lastHealth;
     private int lastShield;
 
     public void OnHealthChange(OnHealthChangeEvent e)
     {
-        if (e.target != gameObject || isDead) return;
+        if (e.target != gameObject || isDead || isInvincible) return;
 
         int finalAmount = e.amount;
 
