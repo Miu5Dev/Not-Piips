@@ -486,6 +486,8 @@ MonoBehaviour:
   - {fileID: 7503374018405080577}
   requireEnemiesCleared: 1
   boss: {fileID: 0}
+  lockEntryOnEnter: 0
+  lockEntryDelay: 2
 --- !u!1 &1580849662713060810
 GameObject:
   m_ObjectHideFlags: 0
@@ -4884,7 +4886,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1734682343438254777, guid: 3af02d441f0f31a478bfcd4d15ba20e1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -101.3
+      value: -308.6
       objectReference: {fileID: 0}
     - target: {fileID: 1734682343438254777, guid: 3af02d441f0f31a478bfcd4d15ba20e1, type: 3}
       propertyPath: m_LocalPosition.z
