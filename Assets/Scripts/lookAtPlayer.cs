@@ -3,6 +3,8 @@ using UnityEngine;
 public class LookAtPlayer : MonoBehaviour
 {
     [Header("Target")]
+        
+    public LayerMask TargetLayer;
     [SerializeField] private Transform target;
 
     [Header("Settings")]
@@ -100,5 +102,13 @@ public class LookAtPlayer : MonoBehaviour
 
         if (Quaternion.Angle(transform.rotation, trackingRotation) < 2f)
             _state = State.Tracking;
+    }
+    
+    public void onPingEventReceived(OnPingEvent e)
+    {
+        if ((TargetLayer.value & (1 << e.sender.layer)) != 0)
+        {
+            target = e.sender.transform;
+        }
     }
 }
