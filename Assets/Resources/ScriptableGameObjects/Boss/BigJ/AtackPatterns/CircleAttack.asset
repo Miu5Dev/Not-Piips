@@ -17,13 +17,13 @@ MonoBehaviour:
   activeDuration: 0
   cooldown: 0
   bulletsPerRing: 50
-  ringCount: 1
-  ringInterval: 0.05
+  ringCount: 2
+  ringInterval: 0.1
   arcAngle: 360
-  aimAtPlayer: 1
-  ringRotationOffset: 0
+  aimAtPlayer: 0
+  ringRotationOffset: 10
   continuousSpinSpeed: 15
-  speedScale: -0.3
+  speedScale: -0.5
   gravity: 0
   bulletHeight: 0
   curveTurnRate: 15
