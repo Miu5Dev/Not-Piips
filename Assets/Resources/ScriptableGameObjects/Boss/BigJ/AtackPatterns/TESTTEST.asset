@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cca9444d0870014439eb3bb3bc74a7a7, type: 3}
-  m_Name: CircleAttack
+  m_Name: TESTTEST
   m_EditorClassIdentifier: 
-  startDelay: 1
+  startDelay: 0
   repeatInterval: 1
   activeDuration: 0
   cooldown: 0
-  bulletsPerRing: 50
+  bulletsPerRing: 24
   ringCount: 1
-  ringInterval: 0.05
+  ringInterval: 0.25
   arcAngle: 360
-  aimAtPlayer: 1
+  aimAtPlayer: 0
   ringRotationOffset: 0
-  continuousSpinSpeed: 15
-  speedScale: -0.3
+  continuousSpinSpeed: 0
+  speedScale: 1
   gravity: 0
   bulletHeight: 0
-  curveTurnRate: 15
+  curveTurnRate: 0

@@ -10,11 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 170bc7458714f4a42beccf6e97900540, type: 3}
-  m_Name: Test
+  m_Name: exact pattern timing
   m_EditorClassIdentifier: 
   duration: 30
   patterns:
-  - {fileID: 11400000, guid: 785365439d58f0a49803499c05558f35, type: 2}
+  - {fileID: 11400000, guid: dd966f41dcb66bf488117fda7dad77a8, type: 2}
+  - {fileID: 11400000, guid: 9c634a98db150b34bbed695501219c77, type: 2}
+  - {fileID: 11400000, guid: 5c34765313c31c14aa05a0eb616be415, type: 2}
   weaponOverride: {fileID: 11400000, guid: 00f83c85471b2eb4b846399092a260f9, type: 2}
   phaseDefenses:
-  - {fileID: 11400000, guid: e25efd70411798e43b3495410ee0c340, type: 2}
+  - {fileID: 11400000, guid: 613a3de4a00293a488829d630e6b6762, type: 2}
