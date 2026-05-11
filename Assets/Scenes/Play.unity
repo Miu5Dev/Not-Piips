@@ -203,6 +203,14 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -0.635376
       objectReference: {fileID: 0}
+    - target: {fileID: 4177758924792007352, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_text
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4177758924792007352, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 4747074390003500334, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -1.1002197
@@ -230,6 +238,26 @@ PrefabInstance:
     - target: {fileID: 7723785118819089553, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791420637717283004, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.78183305
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791420637717283004, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.56549907
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791420637717283004, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -1.8170013
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791420637717283004, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: -2.865
+      objectReference: {fileID: 0}
+    - target: {fileID: 7791420637717283004, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.80000305
       objectReference: {fileID: 0}
     - target: {fileID: 8038999518894035377, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -361,7 +389,7 @@ MonoBehaviour:
   - {fileID: 573276188180144614, guid: 5ce04769b5c75784aa09508ae36588d9, type: 3}
   startRoom: {fileID: 864093948}
   bossRoomPrefab: {fileID: -7154978022856366991, guid: 17bce18958372d2478e17144b937ae7c, type: 3}
-  bossRoomIndex: 1
+  bossRoomIndex: 5
   playerTransform: {fileID: 708602738}
 --- !u!4 &716242729
 Transform:
