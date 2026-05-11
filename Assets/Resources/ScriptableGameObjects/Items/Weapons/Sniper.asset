@@ -20,8 +20,9 @@ MonoBehaviour:
   weaponType: 4
   shotType: 2
   ammo: {fileID: 11400000, guid: abbe7be33294ecc48980aba131e0278b, type: 2}
-  damage: 1000
+  damage: 75
   maxMagazineSize: 1
+  infiniteAmmo: 0
   fireRate: 3
   pellets: 1
   spreadAngle: 0
