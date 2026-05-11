@@ -17,7 +17,7 @@ MonoBehaviour:
   activeDuration: 0
   cooldown: 0
   bulletsPerLine: 30
-  lineWidth: 15
+  lineWidth: 20
   skimHeight: 0
   telegraph: -0.95
   speedScale: 1

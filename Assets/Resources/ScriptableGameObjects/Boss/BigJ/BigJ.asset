@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: BigJ
   m_EditorClassIdentifier: 
   bossName: Big J
-  maxHealth: 10000
+  maxHealth: 5000
   weakPointMultiplier: 3
   defaultWeapon: {fileID: 11400000, guid: 00f83c85471b2eb4b846399092a260f9, type: 2}
   phases:
   - {fileID: 11400000, guid: d4eb0cd25cb3ede41bcf80dcef9f4ff6, type: 2}
-  - {fileID: 11400000, guid: 6df38b9d4f764bd47b9a31fcd34a6c2a, type: 2}
   passiveDefenses: []
   healthTriggers:
   - healthPercent: 20
