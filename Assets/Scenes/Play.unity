@@ -361,7 +361,7 @@ MonoBehaviour:
   - {fileID: 573276188180144614, guid: 5ce04769b5c75784aa09508ae36588d9, type: 3}
   startRoom: {fileID: 864093948}
   bossRoomPrefab: {fileID: -7154978022856366991, guid: 17bce18958372d2478e17144b937ae7c, type: 3}
-  bossRoomIndex: 5
+  bossRoomIndex: 1
   playerTransform: {fileID: 708602738}
 --- !u!4 &716242729
 Transform:

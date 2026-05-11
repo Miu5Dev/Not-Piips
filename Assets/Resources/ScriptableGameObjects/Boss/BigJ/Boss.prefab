@@ -628,7 +628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectedEventTypeName: OnHealthChangeEvent
+  selectedEventTypeName: OnHealthChangedEvent
   onRaised:
     m_PersistentCalls:
       m_Calls: []
@@ -666,16 +666,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   callOnBothStates: 0
-  smartBindings:
-  - targetObject: {fileID: 0}
-    methodName: OnDieEventReceived
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
-    logic: 0
+  smartBindings: []
 --- !u!114 &8338252340585813061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -694,6 +685,7 @@ MonoBehaviour:
   maxShield: 0
   weakPointMultiplier: 4
   isDead: 0
+  isImmune: 0
   isPlayer: 0
 --- !u!114 &6757059009282213888
 MonoBehaviour:
@@ -716,6 +708,10 @@ MonoBehaviour:
   player: {fileID: 0}
   lookAtSpeed: 0.5
   yawOnly: 1
+  roomTrigger: {fileID: 0}
+  activationDelay: 10
+  ambientClip: {fileID: 0}
+  battleMusicClip: {fileID: 0}
   _health: {fileID: 8338252340585813061}
 --- !u!114 &8604422071961051005
 MonoBehaviour:
