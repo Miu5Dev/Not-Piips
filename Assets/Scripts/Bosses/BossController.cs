@@ -27,6 +27,17 @@ public class BossController : MonoBehaviour
     [SerializeField] private float lookAtSpeed = 5f;
     [SerializeField] private bool  yawOnly     = true;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip ambientClip;
+    [SerializeField] private AudioClip battleMusicClip;
+    [SerializeField] private float     ambientFadeDuration = 10f;
+
+    [Header("Intro")]
+    [SerializeField] private float introDuration = 10f;
+
+    private AudioSource _ambientSource;
+    private AudioSource _musicSource;
+
     /// <summary>Fires once when the boss dies. Boss-room cleaner subscribes to unlock the doors.</summary>
     public event Action OnDefeated;
 
@@ -34,6 +45,7 @@ public class BossController : MonoBehaviour
     private BossRuntime      _runtime;
     private Coroutine        _phaseLoop;
     private bool             _alive;
+    private bool             _invincible;
 
     // HP trigger state
     private BossPhaseSO[] _activePhases;            // currently-running cycle (default or trigger-replaced)
@@ -53,6 +65,14 @@ public class BossController : MonoBehaviour
         _health = GetComponent<HealthController>();
         if (visualRoot   == null) visualRoot   = transform;
         if (bulletOrigin == null) bulletOrigin = transform;
+
+        _ambientSource      = gameObject.AddComponent<AudioSource>();
+        _ambientSource.loop = true;
+        _ambientSource.clip = ambientClip;
+
+        _musicSource        = gameObject.AddComponent<AudioSource>();
+        _musicSource.loop   = true;
+        _musicSource.clip   = battleMusicClip;
     }
 
     private void OnEnable()
@@ -96,7 +116,45 @@ public class BossController : MonoBehaviour
         _alive = true;
 
         EnterPassiveDefenses();
-        _phaseLoop = StartCoroutine(PhaseLoop());
+
+        if (ambientClip != null) _ambientSource.Play();
+    }
+
+    public void StartFight()
+    {
+        if (!_alive || _phaseLoop != null) return;
+        StartCoroutine(FightIntro());
+    }
+
+    private IEnumerator FightIntro()
+    {
+        _invincible          = true;
+        _health.isInvincible = true;
+
+        if (battleMusicClip != null) _musicSource.Play();
+        StartCoroutine(FadeOutAmbient());
+
+        yield return new WaitForSeconds(introDuration);
+
+        _invincible          = false;
+        _health.isInvincible = false;
+        _phaseLoop           = StartCoroutine(PhaseLoop());
+    }
+
+    private IEnumerator FadeOutAmbient()
+    {
+        float startVolume = _ambientSource.volume;
+        float elapsed     = 0f;
+
+        while (elapsed < ambientFadeDuration)
+        {
+            elapsed               += Time.deltaTime;
+            _ambientSource.volume  = Mathf.Lerp(startVolume, 0f, elapsed / ambientFadeDuration);
+            yield return null;
+        }
+
+        _ambientSource.volume = 0f;
+        _ambientSource.Stop();
     }
 
     private void Update()

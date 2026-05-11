@@ -17,4 +17,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9100c51d0ab95584c9f6712d4ab8ddc4, type: 2}
   - {fileID: 11400000, guid: 5c34765313c31c14aa05a0eb616be415, type: 2}
   weaponOverride: {fileID: 0}
-  phaseDefenses: []
+  phaseDefenses:
+  - {fileID: 11400000, guid: 613a3de4a00293a488829d630e6b6762, type: 2}
