@@ -167,6 +167,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2019808960961735970, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: enemyDotSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2019808960961735970, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: bulletDotSize
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2019808960961735970, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: playerDotSize
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2280791389207800262, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: rows
       value: 3
