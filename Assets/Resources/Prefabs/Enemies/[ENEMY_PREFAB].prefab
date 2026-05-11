@@ -238,7 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectedEventTypeName: OnHealthChangeEvent
+  selectedEventTypeName: OnHealthChangedEvent
   onRaised:
     m_PersistentCalls:
       m_Calls: []

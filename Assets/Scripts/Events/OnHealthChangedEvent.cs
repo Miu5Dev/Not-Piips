@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class OnHealthChangeEvent
+public class OnHealthChangedEvent
 {
     public HealthType healthType;
     public int amount;
