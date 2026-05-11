@@ -992,16 +992,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   callOnBothStates: 0
-  smartBindings:
-  - targetObject: {fileID: 0}
-    methodName: OnDieEventReceived
-    paramSources:
-    - mode: 3
-      eventFieldName: 
-      fixedValue: 
-      componentMember: 
-    conditions: []
-    logic: 0
+  smartBindings: []
 --- !u!114 &5715224095296652237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1020,6 +1011,7 @@ MonoBehaviour:
   maxShield: 0
   weakPointMultiplier: 4
   isDead: 0
+  isImmune: 0
   isPlayer: 0
 --- !u!114 &6999164491180564360
 MonoBehaviour:
