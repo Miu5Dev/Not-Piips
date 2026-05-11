@@ -128,6 +128,7 @@ public class RoomManager : MonoBehaviour
             wall.RefreshCorners();
 
         newRoom.Initialize(isStartRoom: false, playerTransform, entryDoor);
+        newRoom.SetEntryCloseDoor(activeDoor);
 
         Physics.SyncTransforms();
         newRoom.CutAllDoorWalls();

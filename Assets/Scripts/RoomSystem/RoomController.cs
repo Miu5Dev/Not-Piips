@@ -29,6 +29,12 @@ public class RoomController : MonoBehaviour
     public DoorController ExitDoor     { get; private set; }
     public void SetExitDoor(DoorController door) => ExitDoor = door;
 
+    // The door from the PREVIOUS room that the player walked through.
+    // Used as the closing door instead of the boss room's own entry door,
+    // so only one door object ever closes the entrance.
+    private DoorController _entryCloseDoor;
+    public void SetEntryCloseDoor(DoorController door) => _entryCloseDoor = door;
+
     private DoorController[] _doors;
     private int  _spawnersCleared;
     private bool _bossDefeated;
@@ -143,9 +149,12 @@ public class RoomController : MonoBehaviour
     private IEnumerator LockEntryAfterDelay()
     {
         yield return new WaitForSeconds(lockEntryDelay);
-        if (EntranceDoor == null) yield break;
-        EntranceDoor.gameObject.SetActive(true);
-        EntranceDoor.CloseAndThen(null);
+        // Use the door the player actually walked through (activeDoor from the previous room).
+        // That door is already active and open — just close it. Never re-activate EntranceDoor,
+        // which is hidden via ClearBlocker() and would cause a duplicate door in the doorway.
+        DoorController doorToClose = _entryCloseDoor != null ? _entryCloseDoor : EntranceDoor;
+        if (doorToClose == null) yield break;
+        doorToClose.CloseAndThen(null);
     }
 
     private void HandleSpawnerCleared()
