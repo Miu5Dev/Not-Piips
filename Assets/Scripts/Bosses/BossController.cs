@@ -28,6 +28,8 @@ public class BossController : MonoBehaviour
     [SerializeField] private bool  yawOnly     = true;
 
     [Header("Room Activation")]
+    [Tooltip("The isTrigger collider that covers the room entrance. Drag it in from the scene.")]
+    [SerializeField] private Collider roomTrigger;
     [Tooltip("Seconds the boss stays idle and immune after the player enters the room trigger.")]
     [SerializeField] private float activationDelay = 10f;
 
@@ -64,6 +66,7 @@ public class BossController : MonoBehaviour
     private void Awake()
     {
         _health = GetComponent<HealthController>();
+        _health.enabled = false;
         if (visualRoot   == null) visualRoot   = transform;
         if (bulletOrigin == null) bulletOrigin = transform;
     }
@@ -90,6 +93,31 @@ public class BossController : MonoBehaviour
             return;
         }
 
+        if (ambientClip != null)
+        {
+            _ambientAS      = gameObject.AddComponent<AudioSource>();
+            _ambientAS.clip = ambientClip;
+            _ambientAS.loop = true;
+            _ambientAS.Play();
+        }
+
+        if (roomTrigger != null)
+        {
+            var proxy = roomTrigger.gameObject.GetComponent<BossRoomTrigger>();
+            if (proxy == null) proxy = roomTrigger.gameObject.AddComponent<BossRoomTrigger>();
+            proxy.Init(this, PlayerLayer);
+        }
+    }
+
+    /// <summary>
+    /// Call this to fully initialize and start the boss. Wired to the room trigger automatically,
+    /// but can also be called manually from any other script or Unity Event.
+    /// </summary>
+    public void StartBoss()
+    {
+        if (_activated || bossData == null) return;
+        _activated = true;
+
         _health.maxHealth           = bossData.maxHealth;
         _health.health              = bossData.maxHealth;
         _health.weakPointMultiplier = bossData.weakPointMultiplier;
@@ -106,11 +134,9 @@ public class BossController : MonoBehaviour
 
         _activePhases  = bossData.phases;
         _triggersFired = new bool[bossData.healthTriggers != null ? bossData.healthTriggers.Length : 0];
-        _alive      = true;
-        _activated  = false;
+        _alive         = true;
 
-        // Boss is idle and immune until the player enters the room trigger.
-        _health.enabled = false;
+        StartCoroutine(ActivationSequence());
     }
 
     private void Update()
@@ -129,25 +155,9 @@ public class BossController : MonoBehaviour
     // ROOM ACTIVATION
     // =========================================================
 
-    /// <summary>Called by BossRoomTrigger when the player enters the room hitbox.</summary>
-    public void ActivateBoss()
-    {
-        if (_activated || !_alive) return;
-        _activated = true;
-
-        if (ambientClip != null)
-        {
-            _ambientAS      = gameObject.AddComponent<AudioSource>();
-            _ambientAS.clip = ambientClip;
-            _ambientAS.loop = true;
-            _ambientAS.Play();
-        }
-
-        StartCoroutine(ActivationSequence());
-    }
-
     private IEnumerator ActivationSequence()
     {
+        // Boss is alive but HealthController stays disabled — fully immune during countdown.
         yield return new WaitForSeconds(activationDelay);
 
         _health.enabled = true;

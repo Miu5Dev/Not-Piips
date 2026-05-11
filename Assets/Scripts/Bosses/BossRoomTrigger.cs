@@ -1,21 +1,25 @@
 using UnityEngine;
 
 /// <summary>
-/// Place on a trigger collider that covers the boss room entrance.
-/// Drag the BossController into the 'boss' field and set the Player layer mask.
-/// When the player walks in, the boss activates once (ambient starts, 10-second countdown begins).
+/// Auto-added by BossController at runtime to whichever Collider is dragged into
+/// the "Room Trigger" field. Do not add this manually.
 /// </summary>
 public class BossRoomTrigger : MonoBehaviour
 {
-    [SerializeField] private BossController boss;
-    [SerializeField] private LayerMask      playerLayer;
+    private BossController _boss;
+    private LayerMask      _playerLayer;
+
+    public void Init(BossController boss, LayerMask playerLayer)
+    {
+        _boss        = boss;
+        _playerLayer = playerLayer;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
-        if ((playerLayer.value & (1 << other.gameObject.layer)) == 0) return;
+        if ((_playerLayer.value & (1 << other.gameObject.layer)) == 0) return;
 
-        boss.ActivateBoss();
-        // Disable so the trigger fires exactly once.
+        _boss.StartBoss();
         GetComponent<Collider>().enabled = false;
     }
 }

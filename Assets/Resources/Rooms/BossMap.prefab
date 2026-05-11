@@ -175,6 +175,7 @@ Transform:
   - {fileID: 392698430841156583}
   - {fileID: 2598634463415199905}
   - {fileID: 6402414365650538048}
+  - {fileID: 6522430405396825771}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &-7154978022856366991
@@ -411,6 +412,59 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &3159120340785373769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6522430405396825771}
+  - component: {fileID: 7582940693477021798}
+  m_Layer: 0
+  m_Name: hitbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6522430405396825771
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3159120340785373769}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -39.27, y: 61.8, z: 48.67}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2689366436634259862}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7582940693477021798
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3159120340785373769}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3, y: 6, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4021218906927329377
 GameObject:
   m_ObjectHideFlags: 0
@@ -424,6 +478,7 @@ GameObject:
   - component: {fileID: 1636762961978348109}
   - component: {fileID: 4756122519227453433}
   - component: {fileID: 6001034987656805273}
+  - component: {fileID: 1509639966422879805}
   m_Layer: 9
   m_Name: Head (7)
   m_TagString: WeakPoint
@@ -534,7 +589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TargetLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   target: {fileID: 0}
   lockXAxis: 0
   rotationSpeed: 0
@@ -543,6 +598,36 @@ MonoBehaviour:
   recoilSpeed: 18
   recoveryDelay: 0.35
   recoverySpeed: 1.5
+--- !u!114 &1509639966422879805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021218906927329377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnPingEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 6001034987656805273}
+    methodName: onPingEventReceived
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!1 &4562467813664474866
 GameObject:
   m_ObjectHideFlags: 0
@@ -556,6 +641,7 @@ GameObject:
   - component: {fileID: 387442592574860233}
   - component: {fileID: 1939145802816428371}
   - component: {fileID: 7976203856799501465}
+  - component: {fileID: 1852181951921463504}
   m_Layer: 9
   m_Name: Head (5)
   m_TagString: WeakPoint
@@ -666,7 +752,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TargetLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   target: {fileID: 0}
   lockXAxis: 0
   rotationSpeed: 0
@@ -675,6 +761,36 @@ MonoBehaviour:
   recoilSpeed: 18
   recoveryDelay: 0.35
   recoverySpeed: 1.5
+--- !u!114 &1852181951921463504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4562467813664474866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0b114482fb6b754bb8066f126809b6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  selectedEventTypeName: OnPingEvent
+  onRaised:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  callOnBothStates: 0
+  smartBindings:
+  - targetObject: {fileID: 7976203856799501465}
+    methodName: onPingEventReceived
+    paramSources:
+    - mode: 3
+      eventFieldName: 
+      fixedValue: 
+      componentMember: 
+    conditions: []
+    logic: 0
 --- !u!1 &5671054363892069525
 GameObject:
   m_ObjectHideFlags: 0
@@ -926,6 +1042,7 @@ MonoBehaviour:
   player: {fileID: 0}
   lookAtSpeed: 0.5
   yawOnly: 1
+  roomTrigger: {fileID: 7582940693477021798}
   activationDelay: 10
   ambientClip: {fileID: 8300000, guid: 8bd5adec3489fa54b8029043e1b5d16b, type: 3}
   battleMusicClip: {fileID: 8300000, guid: e5d2b05e668094c41a2af03c922f92a5, type: 3}
