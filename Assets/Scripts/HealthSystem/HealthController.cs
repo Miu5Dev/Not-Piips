@@ -9,15 +9,16 @@ public class HealthController : MonoBehaviour
     public int maxShield = 0;
     public int weakPointMultiplier = 2;
 
-    public bool isDead = false;
-    public bool isPlayer = false;
+    public bool isDead    = false;
+    public bool isImmune  = false;
+    public bool isPlayer  = false;
 
     private int lastHealth;
     private int lastShield;
 
     public void OnHealthChange(OnHealthChangedEvent e)
     {
-        if (e.target != gameObject || isDead) return;
+        if (e.target != gameObject || isDead || isImmune) return;
 
         int finalAmount = e.amount;
 

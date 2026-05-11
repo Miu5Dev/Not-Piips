@@ -79,7 +79,7 @@ MonoBehaviour:
   maxAimDistance: 500
   aimMask:
     serializedVersion: 2
-    m_Bits: 191
+    m_Bits: 2751
 --- !u!1 &297087670916951920
 GameObject:
   m_ObjectHideFlags: 0
@@ -1724,6 +1724,7 @@ GameObject:
   - component: {fileID: 8874580101662034436}
   - component: {fileID: 6596362595957585466}
   - component: {fileID: 4616262630295515275}
+  - component: {fileID: 6259165342512807427}
   m_Layer: 6
   m_Name: '[EnemiesLeft]'
   m_TagString: Untagged
@@ -1827,6 +1828,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roomInfoText: {fileID: 4167574619054231856}
+  fadeInDuration: 0.3
+  fadeOutDuration: 0.5
+--- !u!225 &6259165342512807427
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2967279412053638872}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &3264799990878356036
 GameObject:
   m_ObjectHideFlags: 0
@@ -4494,6 +4509,7 @@ GameObject:
   - component: {fileID: 7045819844607744031}
   - component: {fileID: 3284481564055655167}
   - component: {fileID: 9222792022770770298}
+  - component: {fileID: 8613086465406385132}
   m_Layer: 0
   m_Name: CinemachineBrain
   m_TagString: MainCamera
@@ -4668,6 +4684,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9b875428d06cbf74d9fd11afb43b07be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!81 &8613086465406385132
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7578977621343812720}
+  m_Enabled: 1
 --- !u!1 &7729657892457406904
 GameObject:
   m_ObjectHideFlags: 0
@@ -6256,6 +6280,7 @@ MonoBehaviour:
   maxShield: 30
   weakPointMultiplier: 0
   isDead: 0
+  isImmune: 0
   isPlayer: 1
 --- !u!114 &5912869001865591104
 MonoBehaviour:

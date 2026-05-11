@@ -39,6 +39,8 @@ public class BossController : MonoBehaviour
     [Tooltip("Starts playing once the activation delay expires and the boss goes vulnerable.")]
     [SerializeField] private AudioClip battleMusicClip;
 
+    /// <summary>Fires once when the player enters the room trigger and the boss sequence begins.</summary>
+    public event Action OnActivated;
     /// <summary>Fires once when the boss dies. Boss-room cleaner subscribes to unlock the doors.</summary>
     public event Action OnDefeated;
 
@@ -66,7 +68,7 @@ public class BossController : MonoBehaviour
     private void Awake()
     {
         _health = GetComponent<HealthController>();
-        _health.enabled = false;
+        _health.isImmune = true;
         if (visualRoot   == null) visualRoot   = transform;
         if (bulletOrigin == null) bulletOrigin = transform;
     }
@@ -136,6 +138,7 @@ public class BossController : MonoBehaviour
         _triggersFired = new bool[bossData.healthTriggers != null ? bossData.healthTriggers.Length : 0];
         _alive         = true;
 
+        OnActivated?.Invoke();
         StartCoroutine(ActivationSequence());
     }
 
@@ -160,7 +163,7 @@ public class BossController : MonoBehaviour
         // Boss is alive but HealthController stays disabled — fully immune during countdown.
         yield return new WaitForSeconds(activationDelay);
 
-        _health.enabled = true;
+        _health.isImmune = false;
 
         if (battleMusicClip != null)
         {

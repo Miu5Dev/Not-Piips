@@ -190,10 +190,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7578977621343812720, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 378692532}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
 --- !u!1001 &315633565
 PrefabInstance:
@@ -252,19 +249,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f20a2f98dea449f439f89f88e7b758f5, type: 3}
---- !u!1 &378692525 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7578977621343812720, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
-  m_PrefabInstance: {fileID: 14078187}
-  m_PrefabAsset: {fileID: 0}
---- !u!81 &378692532
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 378692525}
-  m_Enabled: 1
 --- !u!4 &708602738 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
@@ -309,7 +293,7 @@ MonoBehaviour:
   - {fileID: 573276188180144614, guid: 5ce04769b5c75784aa09508ae36588d9, type: 3}
   startRoom: {fileID: 864093948}
   bossRoomPrefab: {fileID: -7154978022856366991, guid: 17bce18958372d2478e17144b937ae7c, type: 3}
-  bossRoomIndex: 1
+  bossRoomIndex: 5
   playerTransform: {fileID: 708602738}
 --- !u!4 &716242729
 Transform:

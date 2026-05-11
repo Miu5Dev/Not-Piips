@@ -54,7 +54,11 @@ public class RoomController : MonoBehaviour
     private void OnDestroy()
     {
         UnsubscribeSpawners();
-        if (boss != null) boss.OnDefeated -= HandleBossDefeated;
+        if (boss != null)
+        {
+            boss.OnActivated -= HandleBossActivated;
+            boss.OnDefeated  -= HandleBossDefeated;
+        }
     }
 
     // =========================================================
@@ -77,7 +81,8 @@ public class RoomController : MonoBehaviour
         {
             entryDoor.SetState(DoorState.Sealed);
             entryDoor.ClearBlocker();
-            if (lockEntryOnEnter)
+            // Boss rooms close via OnActivated; only use the timer for non-boss rooms.
+            if (lockEntryOnEnter && boss == null)
                 StartCoroutine(LockEntryAfterDelay());
         }
 
@@ -105,7 +110,8 @@ public class RoomController : MonoBehaviour
         {
             _bossPending  = true;
             _bossDefeated = false;
-            boss.OnDefeated += HandleBossDefeated;
+            boss.OnActivated += HandleBossActivated;
+            boss.OnDefeated  += HandleBossDefeated;
         }
     }
 
@@ -161,6 +167,13 @@ public class RoomController : MonoBehaviour
     {
         _spawnersCleared++;
         TryFinishClear();
+    }
+
+    private void HandleBossActivated()
+    {
+        DoorController doorToClose = _entryCloseDoor != null ? _entryCloseDoor : EntranceDoor;
+        if (doorToClose != null)
+            doorToClose.CloseAndThen(null);
     }
 
     private void HandleBossDefeated()
