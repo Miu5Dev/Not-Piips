@@ -1020,6 +1020,7 @@ MonoBehaviour:
   maxShield: 0
   weakPointMultiplier: 4
   isDead: 0
+  isImmune: 0
   isPlayer: 0
 --- !u!114 &6999164491180564360
 MonoBehaviour:
