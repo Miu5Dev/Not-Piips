@@ -18,8 +18,8 @@ MonoBehaviour:
   cooldown: 0
   spokeCount: 5
   bulletsPerSpoke: 12
-  bulletInterval: 0.08
-  infinite: 0
+  bulletInterval: 0.15
+  infinite: 1
   rotationPerStep: 3
   continuousSpinSpeed: 0
   aimAtPlayer: 0
