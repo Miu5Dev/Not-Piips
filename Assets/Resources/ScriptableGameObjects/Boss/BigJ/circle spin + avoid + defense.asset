@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 170bc7458714f4a42beccf6e97900540, type: 3}
-  m_Name: nonstopRun with jump
+  m_Name: circle spin + avoid + defense
   m_EditorClassIdentifier: 
   duration: 30
   patterns:
-  - {fileID: 11400000, guid: 9100c51d0ab95584c9f6712d4ab8ddc4, type: 2}
-  - {fileID: 11400000, guid: 5c34765313c31c14aa05a0eb616be415, type: 2}
-  weaponOverride: {fileID: 0}
+  - {fileID: 11400000, guid: 2ef800e9abd19c242a8f1bf565dedb65, type: 2}
+  - {fileID: 11400000, guid: 785365439d58f0a49803499c05558f35, type: 2}
+  weaponOverride: {fileID: 11400000, guid: 00f83c85471b2eb4b846399092a260f9, type: 2}
   phaseDefenses:
-  - {fileID: 11400000, guid: 613a3de4a00293a488829d630e6b6762, type: 2}
+  - {fileID: 11400000, guid: a9d827e5c15c6c34197f8c5c2f12029a, type: 2}
+  - {fileID: 11400000, guid: 7d6272209b74608478a042207e3c4826, type: 2}

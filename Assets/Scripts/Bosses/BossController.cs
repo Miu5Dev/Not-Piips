@@ -27,6 +27,16 @@ public class BossController : MonoBehaviour
     [SerializeField] private float lookAtSpeed = 5f;
     [SerializeField] private bool  yawOnly     = true;
 
+    [Header("Room Activation")]
+    [Tooltip("Seconds the boss stays idle and immune after the player enters the room trigger.")]
+    [SerializeField] private float activationDelay = 10f;
+
+    [Header("Audio")]
+    [Tooltip("Loops forever as soon as the player enters the room.")]
+    [SerializeField] private AudioClip ambientClip;
+    [Tooltip("Starts playing once the activation delay expires and the boss goes vulnerable.")]
+    [SerializeField] private AudioClip battleMusicClip;
+
     /// <summary>Fires once when the boss dies. Boss-room cleaner subscribes to unlock the doors.</summary>
     public event Action OnDefeated;
 
@@ -34,6 +44,9 @@ public class BossController : MonoBehaviour
     private BossRuntime      _runtime;
     private Coroutine        _phaseLoop;
     private bool             _alive;
+    private bool             _activated;
+    private AudioSource      _ambientAS;
+    private AudioSource      _battleMusicAS;
 
     // HP trigger state
     private BossPhaseSO[] _activePhases;            // currently-running cycle (default or trigger-replaced)
@@ -93,10 +106,11 @@ public class BossController : MonoBehaviour
 
         _activePhases  = bossData.phases;
         _triggersFired = new bool[bossData.healthTriggers != null ? bossData.healthTriggers.Length : 0];
-        _alive = true;
+        _alive      = true;
+        _activated  = false;
 
-        EnterPassiveDefenses();
-        _phaseLoop = StartCoroutine(PhaseLoop());
+        // Boss is idle and immune until the player enters the room trigger.
+        _health.enabled = false;
     }
 
     private void Update()
@@ -109,6 +123,44 @@ public class BossController : MonoBehaviour
 
         Quaternion target = Quaternion.LookRotation(toPlayer.normalized);
         visualRoot.rotation = Quaternion.Slerp(visualRoot.rotation, target, Time.deltaTime * lookAtSpeed);
+    }
+
+    // =========================================================
+    // ROOM ACTIVATION
+    // =========================================================
+
+    /// <summary>Called by BossRoomTrigger when the player enters the room hitbox.</summary>
+    public void ActivateBoss()
+    {
+        if (_activated || !_alive) return;
+        _activated = true;
+
+        if (ambientClip != null)
+        {
+            _ambientAS      = gameObject.AddComponent<AudioSource>();
+            _ambientAS.clip = ambientClip;
+            _ambientAS.loop = true;
+            _ambientAS.Play();
+        }
+
+        StartCoroutine(ActivationSequence());
+    }
+
+    private IEnumerator ActivationSequence()
+    {
+        yield return new WaitForSeconds(activationDelay);
+
+        _health.enabled = true;
+
+        if (battleMusicClip != null)
+        {
+            _battleMusicAS      = gameObject.AddComponent<AudioSource>();
+            _battleMusicAS.clip = battleMusicClip;
+            _battleMusicAS.Play();
+        }
+
+        EnterPassiveDefenses();
+        _phaseLoop = StartCoroutine(PhaseLoop());
     }
 
     // =========================================================
@@ -274,6 +326,9 @@ public class BossController : MonoBehaviour
 
         ExitPhaseDefenses();
         ExitPassiveDefenses();
+
+        if (_ambientAS     != null) _ambientAS.Stop();
+        if (_battleMusicAS != null) _battleMusicAS.Stop();
 
         OnDefeated?.Invoke();
     }
