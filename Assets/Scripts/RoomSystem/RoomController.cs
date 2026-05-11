@@ -12,6 +12,10 @@ public class RoomController : MonoBehaviour
     [Tooltip("When true, all exit doors stay locked until every spawner finishes.")]
     [SerializeField] private bool requireEnemiesCleared = true;
 
+    [Header("Boss")]
+    [Tooltip("Optional. If assigned, doors stay locked until the boss is defeated — independent of spawners.")]
+    [SerializeField] private BossController boss;
+
     public bool IsCleared { get; private set; }
 
     // The door this room was entered through — set by RoomManager at spawn time.
@@ -24,7 +28,9 @@ public class RoomController : MonoBehaviour
     public void SetExitDoor(DoorController door) => ExitDoor = door;
 
     private DoorController[] _doors;
-    private int _spawnersCleared;
+    private int  _spawnersCleared;
+    private bool _bossDefeated;
+    private bool _bossPending;
 
     // =========================================================
     // LIFECYCLE
@@ -65,8 +71,9 @@ public class RoomController : MonoBehaviour
             entryDoor.ClearBlocker();
         }
 
-        bool clearsImmediately = isStartRoom || spawners.Length == 0 || !requireEnemiesCleared;
-        DoorState exitState    = clearsImmediately ? DoorState.Unlocked : DoorState.Locked;
+        bool hasBoss            = boss != null;
+        bool clearsImmediately  = isStartRoom || (spawners.Length == 0 && !hasBoss) || !requireEnemiesCleared;
+        DoorState exitState     = clearsImmediately ? DoorState.Unlocked : DoorState.Locked;
 
         foreach (var door in _doors)
         {
@@ -88,6 +95,13 @@ public class RoomController : MonoBehaviour
                 spawner.SetPlayerTransform(playerTransform);
             spawner.StartSpawning();
         }
+
+        if (hasBoss)
+        {
+            _bossPending  = true;
+            _bossDefeated = false;
+            boss.OnDefeated += HandleBossDefeated;
+        }
     }
 
     /// <summary>
@@ -107,7 +121,19 @@ public class RoomController : MonoBehaviour
     private void HandleSpawnerCleared()
     {
         _spawnersCleared++;
+        TryFinishClear();
+    }
+
+    private void HandleBossDefeated()
+    {
+        _bossDefeated = true;
+        TryFinishClear();
+    }
+
+    private void TryFinishClear()
+    {
         if (_spawnersCleared < spawners.Length) return;
+        if (_bossPending && !_bossDefeated)     return;
 
         IsCleared = true;
 

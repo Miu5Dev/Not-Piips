@@ -7,6 +7,7 @@ TagManager:
   - Wall
   - WeakPoint
   - Dor
+  - Boss
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - Player
   - Enemy
   - Minimap
-  - 
+  - Boss
   - 
   - 
   - 

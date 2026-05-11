@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85d468c65168a6342b996fe0a9636335, type: 3}
+  m_Name: ZigZagAttack
+  m_EditorClassIdentifier: 
+  startDelay: 1
+  repeatInterval: 0.25
+  activeDuration: 0
+  cooldown: 0
+  rotationA: 0
+  rotationB: 90
+  aimAtPlayer: 0
+  swingCount: 6
+  stopDuration: 0.6
+  bulletsPerStop: 30
+  burstArcAngle: 360
+  speedScale: 0.5
+  gravity: 0
+  bulletHeight: 0
+  curveTurnRate: 0

@@ -20,6 +20,18 @@ MonoBehaviour:
   wanderFrequency: 0.8
   lateralStrength: 2.5
   aiLodDistance: 80
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
+  losTargetHeight: 1
+  jumpForce: 5
+  jumpCooldown: 0.8
+  panicTime: 5
+  huntSpeedMult: 1.2
+  aggroStrafeMult: 1.2
+  desperationRampTime: 4
+  desperationStrafeBoost: 1.5
+  desperationBackupBoost: 1
   availableWeapons:
   - {fileID: 11400000, guid: d5744b47729e0f64ea00e5ff03f5edcc, type: 2}
   shootBuffer: 1
