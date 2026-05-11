@@ -12,13 +12,14 @@ using UnityEngine;
 public class BossController : MonoBehaviour
 {
     [Header("Data")]
-    [SerializeField] private BossSO bossData;
+    [SerializeField] public BossSO bossData;
 
     [Header("Scene References")]
     [Tooltip("Visual that smoothly rotates to face the player. Falls back to this transform if null.")]
     [SerializeField] private Transform visualRoot;
     [Tooltip("World-space origin of every spawned bullet. Falls back to this transform if null.")]
     [SerializeField] private Transform bulletOrigin;
+    public LayerMask PlayerLayer;
     [Tooltip("Optional. If left empty the player is resolved from OnPlayerSpawnEvent.")]
     [SerializeField] private Transform player;
 
@@ -29,7 +30,7 @@ public class BossController : MonoBehaviour
     /// <summary>Fires once when the boss dies. Boss-room cleaner subscribes to unlock the doors.</summary>
     public event Action OnDefeated;
 
-    private HealthController _health;
+    public HealthController _health;
     private BossRuntime      _runtime;
     private Coroutine        _phaseLoop;
     private bool             _alive;
@@ -281,5 +282,13 @@ public class BossController : MonoBehaviour
     {
         player = e.Player_Enemies_Target;
         if (_runtime != null) _runtime.player = player;
+    }
+
+    public void onPingEventReceived(OnPingEvent e)
+    {
+        if ((PlayerLayer.value & (1 << e.sender.layer)) != 0)
+        {
+            player = e.sender.transform;
+        }
     }
 }
