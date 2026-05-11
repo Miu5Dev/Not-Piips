@@ -3,10 +3,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Shot : MonoBehaviour
 {
-    public int   Damage      { get; private set; }
-    public float Speed       { get; private set; }
+    public int   Damage       { get; private set; }
+    public float Speed        { get; private set; }
     public float GravityForce { get; private set; }
-    public float TurnRate    { get; private set; } // deg/sec around world Y; 0 = straight
+    public float TurnRate     { get; private set; }
 
     [Header("Decal")]
     public bool useDecalProjector = true;
@@ -15,7 +15,7 @@ public class Shot : MonoBehaviour
     [SerializeField] private int trailPresetCount = 8;
 
     [Header("Damage")]
-    [SerializeField] private HealthType healthType  = HealthType.Shield;
+    [SerializeField] private HealthType healthType   = HealthType.Shield;
     [SerializeField] private string     weakPointTag = "WeakPoint";
 
     private GameObject decalPrefab;
@@ -26,10 +26,11 @@ public class Shot : MonoBehaviour
     private TrailRenderer trail;
     private bool       initialized;
     private Vector3    moveDirection;
-    private Vector3    spawnPoint;
-    private float      despawnSqr;
 
     public float despawnDistance = 100f;
+
+    private float   _traveledDistance;
+    private Vector3 _lastPosition;
 
     private AnimationCurve[] _trailPresets;
     private float[]          _trailTimes;
@@ -42,10 +43,9 @@ public class Shot : MonoBehaviour
         rb    = GetComponent<Rigidbody>();
         trail = GetComponentInChildren<TrailRenderer>(includeInactive: true);
 
-        rb.useGravity            = false;
-        rb.mass                  = 0.001f;
+        rb.useGravity             = false;
+        rb.mass                   = 0.001f;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-        despawnSqr               = despawnDistance * despawnDistance;
 
         PrewarmTrailPresets();
     }
@@ -64,18 +64,19 @@ public class Shot : MonoBehaviour
     {
         MinimapRenderer.UnregisterBullet(this);
 
-        initialized       = false;
-        rb.linearVelocity = Vector3.zero;
-        rb.isKinematic    = false;
+        initialized           = false;
+        _traveledDistance     = 0f;
+        rb.linearVelocity     = Vector3.zero;
+        rb.isKinematic        = false;
     }
 
     // ── Initialization ─────────────────────────────────────────────────────
 
     public void Initialize(int damage, float speed, float gravityForce,
-        GameObject decal             = null,
-        LayerMask? decalLayerMask    = null,
-        GameObject impactVFX         = null,
-        bool       firedByPlayer     = false,
+        GameObject decal              = null,
+        LayerMask? decalLayerMask     = null,
+        GameObject impactVFX          = null,
+        bool       firedByPlayer      = false,
         LayerMask? collisionLayerMask = null,
         float      turnRate           = 0f)
     {
@@ -86,14 +87,17 @@ public class Shot : MonoBehaviour
         GravityForce    = gravityForce;
         TurnRate        = turnRate;
         decalPrefab     = decal;
-        decalLayers     = decalLayerMask    ?? ~0;
+        decalLayers     = decalLayerMask     ?? ~0;
         collisionLayers = collisionLayerMask ?? ~0;
         impactVFXPrefab = impactVFX;
 
         moveDirection     = transform.forward.normalized;
         rb.linearVelocity = moveDirection * Speed;
-        spawnPoint        = transform.position;
-        initialized       = true;
+
+        _traveledDistance = 0f;
+        _lastPosition     = transform.position;
+
+        initialized = true;
 
         if (!firedByPlayer)
             MinimapRenderer.RegisterBullet(this);
@@ -107,7 +111,6 @@ public class Shot : MonoBehaviour
     {
         if (!initialized) return;
 
-        // Curve: rotate the move direction around world Y. Zero = straight line.
         if (TurnRate != 0f)
             moveDirection = Quaternion.AngleAxis(TurnRate * Time.fixedDeltaTime, Vector3.up) * moveDirection;
 
@@ -117,13 +120,16 @@ public class Shot : MonoBehaviour
         v.y += GravityForce * Time.fixedDeltaTime;
         rb.linearVelocity = v;
 
-        if ((transform.position - spawnPoint).sqrMagnitude >= despawnSqr)
+        // Accumulate actual path length this physics step
+        _traveledDistance += Vector3.Distance(transform.position, _lastPosition);
+        _lastPosition      = transform.position;
+
+        if (_traveledDistance >= despawnDistance)
             Die();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        // ── Layer check ────────────────────────────────────────────────────
         if ((collisionLayers.value & (1 << collision.gameObject.layer)) == 0) return;
 
         Rigidbody hitRb = collision.rigidbody;
@@ -231,9 +237,9 @@ public class Shot : MonoBehaviour
     {
         if (trail == null || _trailPresets == null) return;
 
-        _presetIndex       = (_presetIndex + 1) % _trailPresets.Length;
-        trail.widthCurve   = _trailPresets[_presetIndex];
-        trail.widthMultiplier = 1f;
-        trail.time         = _trailTimes[_presetIndex];
+        _presetIndex              = (_presetIndex + 1) % _trailPresets.Length;
+        trail.widthCurve          = _trailPresets[_presetIndex];
+        trail.widthMultiplier     = 1f;
+        trail.time                = _trailTimes[_presetIndex];
     }
 }

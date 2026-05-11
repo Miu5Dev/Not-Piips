@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1206191252992090838}
   - component: {fileID: 3716943634602398056}
   - component: {fileID: 666993045066596462}
-  m_Layer: 9
+  m_Layer: 11
   m_Name: SM_FloorProps_07
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 1859968129283229964}
   - component: {fileID: 5065378172840402003}
   - component: {fileID: 5992481552340090027}
-  m_Layer: 9
+  m_Layer: 11
   m_Name: SM_FloorProps_07
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -228,7 +228,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1205340793947596976}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Shield
   m_TagString: Untagged
   m_Icon: {fileID: 0}
