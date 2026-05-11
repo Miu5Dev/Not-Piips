@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6cb286661c3fdb944a68b4431469d89a, type: 3}
-  m_Name: ShotgunAttack
+  m_Name: 5 shotgun shoots
   m_EditorClassIdentifier: 
   startDelay: 0
   repeatInterval: 0.1
   activeDuration: 0
   cooldown: 0
-  lineCount: 4
+  lineCount: 5
   arcAngle: 30
-  bulletsPerLine: 1
-  bulletInterval: 0.08
+  bulletsPerLine: 2
+  bulletInterval: 0.5
   aimAtPlayer: 1
   mirrorBack: 1
   continuousSpinSpeed: 0
-  speedScale: 1
+  speedScale: 0.5
   gravity: 0
   bulletHeight: 0
   curveTurnRate: 0

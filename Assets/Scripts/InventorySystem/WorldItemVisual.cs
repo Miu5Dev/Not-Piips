@@ -118,6 +118,10 @@ public class WorldItemVisual : MonoBehaviour
         _rb.useGravity             = false;
         _rb.collisionDetectionMode = CollisionDetectionMode.Discrete;
         transform.rotation         = Quaternion.identity;
+        Vector3 worldScale = transform.lossyScale;
+        transform.SetParent(col.transform, true);
+        Vector3 ps = col.transform.lossyScale;
+        transform.localScale = new Vector3(worldScale.x / ps.x, worldScale.y / ps.y, worldScale.z / ps.z);
         _originLocalPos            = transform.localPosition + Vector3.up * groundOffset;
 
         if (physicsCollider != null)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -15,6 +16,12 @@ public class RoomController : MonoBehaviour
     [Header("Boss")]
     [Tooltip("Optional. If assigned, doors stay locked until the boss is defeated — independent of spawners.")]
     [SerializeField] private BossController boss;
+
+    [Header("Entry Lock")]
+    [Tooltip("If true, the entry door closes behind the player after they enter. Enable on the boss room prefab.")]
+    [SerializeField] private bool lockEntryOnEnter;
+    [Tooltip("Seconds after the room spawns before the entry door closes behind the player.")]
+    [SerializeField] private float lockEntryDelay = 2f;
 
     public bool IsCleared { get; private set; }
 
@@ -69,6 +76,8 @@ public class RoomController : MonoBehaviour
         {
             entryDoor.SetState(DoorState.Sealed);
             entryDoor.ClearBlocker();
+            if (lockEntryOnEnter)
+                StartCoroutine(LockEntryAfterDelay());
         }
 
         bool hasBoss            = boss != null;
@@ -117,6 +126,14 @@ public class RoomController : MonoBehaviour
     // =========================================================
     // PRIVATE
     // =========================================================
+
+    private IEnumerator LockEntryAfterDelay()
+    {
+        yield return new WaitForSeconds(lockEntryDelay);
+        if (EntranceDoor == null) yield break;
+        EntranceDoor.gameObject.SetActive(true);
+        EntranceDoor.CloseAndThen(null);
+    }
 
     private void HandleSpawnerCleared()
     {

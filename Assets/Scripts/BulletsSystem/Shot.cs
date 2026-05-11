@@ -141,6 +141,7 @@ public class Shot : MonoBehaviour
             EventBus.Raise(new OnHealthChangeEvent()
             {
                 target       = healthController.gameObject,
+                hitObject    = collision.collider.gameObject,
                 healthType   = healthType,
                 amount       = -Damage,
                 WeakPointHit = isWeakPointHit

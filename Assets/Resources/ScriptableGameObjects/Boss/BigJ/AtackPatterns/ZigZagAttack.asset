@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: ZigZagAttack
   m_EditorClassIdentifier: 
   startDelay: 1
-  repeatInterval: 0.25
+  repeatInterval: 0.005
   activeDuration: 0
   cooldown: 0
   rotationA: 0
-  rotationB: 90
-  aimAtPlayer: 0
-  swingCount: 6
-  stopDuration: 0.6
+  rotationB: 45
+  aimAtPlayer: 1
+  swingCount: 45
+  stopDuration: 1
   bulletsPerStop: 30
   burstArcAngle: 360
-  speedScale: 0.5
+  speedScale: 0.25
   gravity: 0
   bulletHeight: 0
   curveTurnRate: 0

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cca9444d0870014439eb3bb3bc74a7a7, type: 3}
-  m_Name: CircleAttack
+  m_Name: Rotating Circle
   m_EditorClassIdentifier: 
-  startDelay: 1
+  startDelay: 3
   repeatInterval: 1
   activeDuration: 0
   cooldown: 0
