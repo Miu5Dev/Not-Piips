@@ -16,9 +16,9 @@ MonoBehaviour:
   repeatInterval: 1
   activeDuration: 0
   cooldown: 0
-  bulletsPerLine: 14
-  lineWidth: 8
-  skimHeight: 0.4
+  bulletsPerLine: 40
+  lineWidth: 5
+  skimHeight: 0.75
   telegraph: 0.6
-  speedScale: 1.2
+  speedScale: 3
   curveTurnRate: 0

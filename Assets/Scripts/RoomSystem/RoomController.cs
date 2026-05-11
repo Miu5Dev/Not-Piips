@@ -132,7 +132,7 @@ public class RoomController : MonoBehaviour
         yield return new WaitForSeconds(lockEntryDelay);
         if (EntranceDoor == null) yield break;
         EntranceDoor.gameObject.SetActive(true);
-        EntranceDoor.CloseAndThen(null);
+        EntranceDoor.CloseAndThen(() => boss?.StartFight());
     }
 
     private void HandleSpawnerCleared()
