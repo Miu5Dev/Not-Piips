@@ -25,13 +25,8 @@ public class RoomController : MonoBehaviour
 
     public bool IsCleared { get; private set; }
 
-    // The door this room was entered through — set by RoomManager at spawn time.
     public DoorController EntranceDoor { get; private set; }
-
-    // The door the player used to leave this room — set by RoomManager when the
-    // next room is opened. Used so the door can survive this room's destruction
-    // and play a close animation to plug the hole in the surviving room's wall.
-    public DoorController ExitDoor { get; private set; }
+    public DoorController ExitDoor     { get; private set; }
     public void SetExitDoor(DoorController door) => ExitDoor = door;
 
     private DoorController[] _doors;
@@ -50,11 +45,16 @@ public class RoomController : MonoBehaviour
             Debug.LogWarning($"[RoomController] '{name}' has no DoorControllers in children.");
     }
 
+    private void OnDestroy()
+    {
+        UnsubscribeSpawners();
+        if (boss != null) boss.OnDefeated -= HandleBossDefeated;
+    }
+
     // =========================================================
     // PUBLIC API
     // =========================================================
 
-    /// <summary>Returns a random door from this room (used by RoomManager to pick the entry).</summary>
     public DoorController GetRandomDoor()
     {
         if (_doors.Length == 0) return null;
@@ -63,15 +63,10 @@ public class RoomController : MonoBehaviour
         return _doors[Random.Range(0, _doors.Length)];
     }
 
-    /// <param name="isStartRoom">True for the room already in the scene at game start.</param>
-    /// <param name="playerTransform">Forwarded to EnemySpawners.</param>
-    /// <param name="entryDoor">The door on this room that aligns with the previous room. Null for start room.</param>
     public void Initialize(bool isStartRoom, Transform playerTransform = null, DoorController entryDoor = null)
     {
         EntranceDoor = entryDoor;
 
-        // Seal the entry door visually and remove its physical blocker so the
-        // player can walk through from the connected room on the other side.
         if (entryDoor != null)
         {
             entryDoor.SetState(DoorState.Sealed);
@@ -80,9 +75,9 @@ public class RoomController : MonoBehaviour
                 StartCoroutine(LockEntryAfterDelay());
         }
 
-        bool hasBoss            = boss != null;
-        bool clearsImmediately  = isStartRoom || (spawners.Length == 0 && !hasBoss) || !requireEnemiesCleared;
-        DoorState exitState     = clearsImmediately ? DoorState.Unlocked : DoorState.Locked;
+        bool hasBoss           = boss != null;
+        bool clearsImmediately = isStartRoom || (spawners.Length == 0 && !hasBoss) || !requireEnemiesCleared;
+        DoorState exitState    = clearsImmediately ? DoorState.Unlocked : DoorState.Locked;
 
         foreach (var door in _doors)
         {
@@ -93,17 +88,12 @@ public class RoomController : MonoBehaviour
         if (clearsImmediately)
         {
             IsCleared = true;
+            SubscribeAndStartSpawners(playerTransform);
             return;
         }
 
         _spawnersCleared = 0;
-        foreach (var spawner in spawners)
-        {
-            spawner.OnAllCleared += HandleSpawnerCleared;
-            if (playerTransform != null)
-                spawner.SetPlayerTransform(playerTransform);
-            spawner.StartSpawning();
-        }
+        SubscribeAndStartSpawners(playerTransform);
 
         if (hasBoss)
         {
@@ -113,10 +103,6 @@ public class RoomController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Cuts holes in the walls of all doors in this room.
-    /// Called by RoomManager after Physics.SyncTransforms() so raycasts are accurate.
-    /// </summary>
     public void CutAllDoorWalls()
     {
         foreach (var door in _doors)
@@ -126,6 +112,33 @@ public class RoomController : MonoBehaviour
     // =========================================================
     // PRIVATE
     // =========================================================
+
+    private void SubscribeAndStartSpawners(Transform playerTransform)
+    {
+        if (spawners == null || spawners.Length == 0) return;
+
+        foreach (var spawner in spawners)
+        {
+            spawner.OnAllCleared   += HandleSpawnerCleared;
+            spawner.OnStateChanged += BroadcastRoomState;
+            if (playerTransform != null)
+                spawner.SetPlayerTransform(playerTransform);
+            spawner.StartSpawning();
+        }
+
+        BroadcastRoomState();
+    }
+
+    private void UnsubscribeSpawners()
+    {
+        if (spawners == null) return;
+        foreach (var spawner in spawners)
+        {
+            if (spawner == null) continue;
+            spawner.OnAllCleared   -= HandleSpawnerCleared;
+            spawner.OnStateChanged -= BroadcastRoomState;
+        }
+    }
 
     private IEnumerator LockEntryAfterDelay()
     {
@@ -150,7 +163,7 @@ public class RoomController : MonoBehaviour
     private void TryFinishClear()
     {
         if (_spawnersCleared < spawners.Length) return;
-        if (_bossPending && !_bossDefeated)     return;
+        if (_bossPending && !_bossDefeated) return;
 
         IsCleared = true;
 
@@ -161,5 +174,31 @@ public class RoomController : MonoBehaviour
         }
 
         EventBus.Raise(new OnRoomClearedEvent { room = this });
+    }
+
+    private void BroadcastRoomState()
+    {
+        int killedThisWave = 0, enemiesPerWave = 0;
+        int currentWave    = 0, totalWaves     = 0;
+
+        foreach (var spawner in spawners)
+        {
+            killedThisWave += spawner.EnemiesKilledThisWave;
+            enemiesPerWave += spawner.EnemiesPerWave;
+
+            if (spawner.CurrentWave > currentWave)
+            {
+                currentWave = spawner.CurrentWave;
+                totalWaves  = spawner.TotalWaves;
+            }
+        }
+
+        EventBus.Raise(new OnRoomStateChangedEvent
+        {
+            EnemiesKilledThisWave = killedThisWave,
+            EnemiesPerWave        = enemiesPerWave,
+            CurrentWave           = currentWave,
+            TotalWaves            = totalWaves
+        });
     }
 }

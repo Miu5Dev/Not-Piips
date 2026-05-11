@@ -15,7 +15,7 @@ public class HealthController : MonoBehaviour
     private int lastHealth;
     private int lastShield;
 
-    public void OnHealthChange(OnHealthChangeEvent e)
+    public void OnHealthChange(OnHealthChangedEvent e)
     {
         if (e.target != gameObject || isDead) return;
 

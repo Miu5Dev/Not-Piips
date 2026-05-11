@@ -25,15 +25,15 @@ public class LookAtPlayer : MonoBehaviour
 
     private void OnEnable()
     {
-        EventBus.Subscribe<OnHealthChangeEvent>(OnHealthChange);
+        EventBus.Subscribe<OnHealthChangedEvent>(OnHealthChange);
     }
 
     private void OnDisable()
     {
-        EventBus.Unsubscribe<OnHealthChangeEvent>(OnHealthChange);
+        EventBus.Unsubscribe<OnHealthChangedEvent>(OnHealthChange);
     }
 
-    private void OnHealthChange(OnHealthChangeEvent e)
+    private void OnHealthChange(OnHealthChangedEvent e)
     {
         if (e.hitObject != gameObject || !e.WeakPointHit) return;
 

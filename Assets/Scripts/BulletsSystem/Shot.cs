@@ -144,7 +144,7 @@ public class Shot : MonoBehaviour
 
         if (healthController != null)
         {
-            EventBus.Raise(new OnHealthChangeEvent()
+            EventBus.Raise(new OnHealthChangedEvent()
             {
                 target       = healthController.gameObject,
                 hitObject    = collision.collider.gameObject,

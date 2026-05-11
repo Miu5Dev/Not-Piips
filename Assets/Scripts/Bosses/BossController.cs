@@ -58,14 +58,14 @@ public class BossController : MonoBehaviour
     private void OnEnable()
     {
         EventBus.Subscribe<OnDieEvent>(OnDie);
-        EventBus.Subscribe<OnHealthChangeEvent>(OnHealth);
+        EventBus.Subscribe<OnHealthChangedEvent>(OnHealth);
         EventBus.Subscribe<OnPlayerSpawnEvent>(OnPlayerSpawn);
     }
 
     private void OnDisable()
     {
         EventBus.Unsubscribe<OnDieEvent>(OnDie);
-        EventBus.Unsubscribe<OnHealthChangeEvent>(OnHealth);
+        EventBus.Unsubscribe<OnHealthChangedEvent>(OnHealth);
         EventBus.Unsubscribe<OnPlayerSpawnEvent>(OnPlayerSpawn);
     }
 
@@ -229,7 +229,7 @@ public class BossController : MonoBehaviour
     // EVENTS
     // =========================================================
 
-    private void OnHealth(OnHealthChangeEvent e)
+    private void OnHealth(OnHealthChangedEvent e)
     {
         if (e.target != gameObject || !_alive) return;
         if (bossData.healthTriggers == null || bossData.healthTriggers.Length == 0) return;

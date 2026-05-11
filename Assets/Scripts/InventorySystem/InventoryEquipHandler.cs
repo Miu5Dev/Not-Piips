@@ -77,7 +77,7 @@ public class InventoryEquipHandler : MonoBehaviour
             {
                 target.RemoveFromStack(1);
 
-                EventBus.Raise(new OnHealthChangeEvent
+                EventBus.Raise(new OnHealthChangedEvent
                 {
                     healthType  = healthItem.healthType,
                     amount      = (int)healthItem.restoreAmount,
