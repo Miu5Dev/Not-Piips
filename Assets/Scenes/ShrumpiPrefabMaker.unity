@@ -127,6 +127,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 195236775512530661, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 778.9502
+      objectReference: {fileID: 0}
+    - target: {fileID: 195236775512530661, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -11.185791
+      objectReference: {fileID: 0}
     - target: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -166,6 +174,10 @@ PrefabInstance:
     - target: {fileID: 1696191593976069545, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2474917389199676971, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0.19995117
       objectReference: {fileID: 0}
     - target: {fileID: 3344056122098895800, guid: 8db14abfdcb43c944aa91efe94f39cfa, type: 3}
       propertyPath: m_AnchorMax.x
@@ -628,8 +640,8 @@ MonoBehaviour:
   - {fileID: 4124618424441757998, guid: a799a6adc63ab464d814d1a1b2d22af9, type: 3}
   - {fileID: 573276188180144614, guid: 5ce04769b5c75784aa09508ae36588d9, type: 3}
   - {fileID: 3300459801925516574, guid: 19469835be5b15645bafeddddab06b12, type: 3}
-  startRoom: {fileID: 0}
-  bossRoomPrefab: {fileID: 0}
+  startRoom: {fileID: 1836573910}
+  bossRoomPrefab: {fileID: -7154978022856366991, guid: 17bce18958372d2478e17144b937ae7c, type: 3}
   bossRoomIndex: 10
   playerTransform: {fileID: 708602738}
 --- !u!4 &716242729
@@ -2492,3 +2504,4 @@ SceneRoots:
   - {fileID: 716242729}
   - {fileID: 1530269693}
   - {fileID: 1739882286}
+  - {fileID: 1836573908}
