@@ -24,12 +24,12 @@ public class BossBarManager : MonoBehaviour
         if ((BossLayer.value & (1 << e.sender.layer)) != 0)
         {
             controller = e.sender?.GetComponent<BossController>();
-            BossSlider.maxValue = controller._health.maxHealth;
-            BossSlider.minValue = 0; 
-            BossSlider.value = controller._health.maxHealth;
-            BossName.text = controller.bossData.bossName;
             hp = controller._health;
-            lastHealth = controller._health.maxHealth;
+            BossName.text = controller.bossData.bossName;
+            BossSlider.maxValue = controller.bossData.maxHealth;
+            BossSlider.minValue = 0; 
+            BossSlider.value = controller.bossData.maxHealth;
+            lastHealth = controller.bossData.maxHealth;
 
             EventBus.Raise(new OnPingEvent()
             {
@@ -47,8 +47,15 @@ public class BossBarManager : MonoBehaviour
                 bossBar.SetActive(false);
             return;
         }
-        
-        if(!bossBar.active)bossBar.SetActive(true);
+
+        if (!bossBar.active)
+        {
+            bossBar.SetActive(true);
+            BossName.text = controller.bossData.bossName;
+            BossSlider.maxValue = controller.bossData.maxHealth;
+            BossSlider.minValue = 0; 
+            BossSlider.value = controller.bossData.maxHealth;
+        }
         
         if (lastHealth != controller._health.health)
         {

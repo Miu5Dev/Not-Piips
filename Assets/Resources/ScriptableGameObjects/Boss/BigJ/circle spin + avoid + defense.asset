@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 170bc7458714f4a42beccf6e97900540, type: 3}
   m_Name: circle spin + avoid + defense
   m_EditorClassIdentifier: 
-  duration: 30
+  duration: 15
   patterns:
   - {fileID: 11400000, guid: 2ef800e9abd19c242a8f1bf565dedb65, type: 2}
   - {fileID: 11400000, guid: 785365439d58f0a49803499c05558f35, type: 2}

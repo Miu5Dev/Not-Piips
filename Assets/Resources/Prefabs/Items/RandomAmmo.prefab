@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: -9126717464056130460}
   - component: {fileID: 2004225245016659070}
   m_Layer: 3
-  m_Name: RandomItemPrefab
+  m_Name: RandomAmmo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -93,44 +93,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   possibleItems:
   - item: {fileID: 11400000, guid: 6a33476d74f415a4fa28553ffdae1a2b, type: 2}
-    minAmount: 1
-    maxAmount: 4
-    weight: 8
-  - item: {fileID: 11400000, guid: 72c7ff6b3be187c4d8154b218e6ca599, type: 2}
-    minAmount: 1
-    maxAmount: 4
-    weight: 8
-  - item: {fileID: 11400000, guid: 05d6f3bef8306fb489c49da21bc429fd, type: 2}
-    minAmount: 1
-    maxAmount: 4
-    weight: 8
-  - item: {fileID: 11400000, guid: 02c20b6b9c759894aa7a4820925288e0, type: 2}
-    minAmount: 1
-    maxAmount: 4
-    weight: 8
-  - item: {fileID: 11400000, guid: a2820eb7e7e1fb4478c67de856e55330, type: 2}
-    minAmount: 1
-    maxAmount: 4
-    weight: 8
-  - item: {fileID: 11400000, guid: 21efcdce9a26b7948961625d2e339530, type: 2}
-    minAmount: 1
-    maxAmount: 4
+    minAmount: 4
+    maxAmount: 8
     weight: 8
   - item: {fileID: 11400000, guid: abbe7be33294ecc48980aba131e0278b, type: 2}
     minAmount: 1
-    maxAmount: 4
+    maxAmount: 2
     weight: 8
   - item: {fileID: 11400000, guid: 75914aed3c10a31488b207fcd3f35aea, type: 2}
-    minAmount: 1
-    maxAmount: 4
+    minAmount: 3
+    maxAmount: 6
     weight: 8
   - item: {fileID: 11400000, guid: ba60e182fbc25a742ae7045b6a8e1983, type: 2}
     minAmount: 1
-    maxAmount: 4
+    maxAmount: 2
     weight: 8
-  - item: {fileID: 11400000, guid: b198a0b1dd3a4a4439d4bab6becc88d2, type: 2}
+  - item: {fileID: 11400000, guid: 05d6f3bef8306fb489c49da21bc429fd, type: 2}
     minAmount: 1
-    maxAmount: 4
+    maxAmount: 3
+    weight: 8
+  - item: {fileID: 11400000, guid: 72c7ff6b3be187c4d8154b218e6ca599, type: 2}
+    minAmount: 1
+    maxAmount: 2
     weight: 8
 --- !u!114 &1319883420808856695
 MonoBehaviour:
