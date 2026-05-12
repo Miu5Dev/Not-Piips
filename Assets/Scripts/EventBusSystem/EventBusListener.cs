@@ -321,6 +321,10 @@ public class BindingCondition
     public ConditionSource source = ConditionSource.EventField;
     public string compareValue = "";
     public string componentFieldName = "";
+#if UNITY_EDITOR
+    // Used only in editor to store UnityObject references for drag & drop conditions
+    public UnityEngine.Object compareObject = null;
+#endif
 
     public Func<object, bool> Compile(Type eventType, UnityEngine.Object targetObject = null)
     {
@@ -1143,10 +1147,38 @@ public class EventBusListenerEditor : Editor
                         if (condSourceVal == ConditionSource.EventField)
                         {
                             if (selectedCondField != null)
-                                condValue.stringValue = DrawTypedField("Value", condValue.stringValue, selectedCondField.FieldType);
-                            GUI.color = new Color(1f, 0.9f, 0.5f);
-                            EditorGUILayout.LabelField($"  if ({condField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {condValue.stringValue})", EditorStyles.miniLabel);
-                            GUI.color = Color.white;
+                            {
+                                if (typeof(UnityEngine.Object).IsAssignableFrom(selectedCondField.FieldType))
+                                {
+                                    // Drag & drop ObjectField — store instance ID in compareValue
+                                    var condObjProp = condProp.FindPropertyRelative("compareObject");
+                                    using (new EditorGUILayout.HorizontalScope())
+                                    {
+                                        EditorGUILayout.LabelField("Value", GUILayout.Width(80));
+                                        EditorGUI.BeginChangeCheck();
+                                        var picked = EditorGUILayout.ObjectField(
+                                            condObjProp?.objectReferenceValue, selectedCondField.FieldType, true);
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            if (condObjProp != null) condObjProp.objectReferenceValue = picked;
+                                            condValue.stringValue = picked != null
+                                                ? picked.GetInstanceID().ToString() : "0";
+                                        }
+                                    }
+                                    string objName = condObjProp?.objectReferenceValue != null
+                                        ? condObjProp.objectReferenceValue.name : "None";
+                                    GUI.color = new Color(1f, 0.9f, 0.5f);
+                                    EditorGUILayout.LabelField($"  if ({condField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {objName})", EditorStyles.miniLabel);
+                                    GUI.color = Color.white;
+                                }
+                                else
+                                {
+                                    condValue.stringValue = DrawTypedField("Value", condValue.stringValue, selectedCondField.FieldType);
+                                    GUI.color = new Color(1f, 0.9f, 0.5f);
+                                    EditorGUILayout.LabelField($"  if ({condField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {condValue.stringValue})", EditorStyles.miniLabel);
+                                    GUI.color = Color.white;
+                                }
+                            }
                         }
                         else if (condSourceVal == ConditionSource.ComponentField)
                         {
@@ -1195,11 +1227,36 @@ public class EventBusListenerEditor : Editor
                                     }
                                     var selMem2 = allMems[Mathf.Max(0, Array.IndexOf(allN, condCompField.stringValue))];
                                     Type selFieldType = selMem2 is FieldInfo sf2 ? sf2.FieldType : ((PropertyInfo)selMem2).PropertyType;
-                                    condValue.stringValue = DrawTypedField("Value", condValue.stringValue, selFieldType);
                                     string own2 = selMem2.DeclaringType == typeof(GameObject) ? "GameObject" : targetObj2.GetType().Name;
-                                    GUI.color = new Color(1f, 0.9f, 0.5f);
-                                    EditorGUILayout.LabelField($"  if ({own2}.{condCompField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {condValue.stringValue})", EditorStyles.miniLabel);
-                                    GUI.color = Color.white;
+                                    if (typeof(UnityEngine.Object).IsAssignableFrom(selFieldType))
+                                    {
+                                        var condObjProp2 = condProp.FindPropertyRelative("compareObject");
+                                        using (new EditorGUILayout.HorizontalScope())
+                                        {
+                                            EditorGUILayout.LabelField("Value", GUILayout.Width(80));
+                                            EditorGUI.BeginChangeCheck();
+                                            var picked2 = EditorGUILayout.ObjectField(
+                                                condObjProp2?.objectReferenceValue, selFieldType, true);
+                                            if (EditorGUI.EndChangeCheck())
+                                            {
+                                                if (condObjProp2 != null) condObjProp2.objectReferenceValue = picked2;
+                                                condValue.stringValue = picked2 != null
+                                                    ? picked2.GetInstanceID().ToString() : "0";
+                                            }
+                                        }
+                                        string objName2 = condObjProp2?.objectReferenceValue != null
+                                            ? condObjProp2.objectReferenceValue.name : "None";
+                                        GUI.color = new Color(1f, 0.9f, 0.5f);
+                                        EditorGUILayout.LabelField($"  if ({own2}.{condCompField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {objName2})", EditorStyles.miniLabel);
+                                        GUI.color = Color.white;
+                                    }
+                                    else
+                                    {
+                                        condValue.stringValue = DrawTypedField("Value", condValue.stringValue, selFieldType);
+                                        GUI.color = new Color(1f, 0.9f, 0.5f);
+                                        EditorGUILayout.LabelField($"  if ({own2}.{condCompField.stringValue} {OpSymbol((ConditionOperator)condOp.enumValueIndex)} {condValue.stringValue})", EditorStyles.miniLabel);
+                                        GUI.color = Color.white;
+                                    }
                                 }
                             }
                         }

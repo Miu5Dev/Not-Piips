@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Minigun Ammo
   m_EditorClassIdentifier: 
   isStackable: 1
-  maxStackSize: 30
+  maxStackSize: 2
   weight: 5
   size: {x: 1, y: 1}
   icon: {fileID: 2116890329, guid: 1cf678d062446514d8bbab5cf806b9c4, type: 3}

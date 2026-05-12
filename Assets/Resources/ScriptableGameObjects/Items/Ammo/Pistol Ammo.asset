@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Pistol Ammo
   m_EditorClassIdentifier: 
   isStackable: 1
-  maxStackSize: 30
+  maxStackSize: 6
   weight: 5
   size: {x: 1, y: 1}
   icon: {fileID: 65683253, guid: 927a115093a58c84a847c21897d11925, type: 3}
